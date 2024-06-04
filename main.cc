@@ -1,8 +1,15 @@
+// Include our own defined headers
+#include "vec3.h"
+#include "color.h"
+
 #include <iostream>
 
 int main() {
+    // Image configuration
     int image_width = 256;
     int image_height = 256;
+
+    // Rendering
 
     // Write the header: Magic Width Height and on the next line we have the maximu value for each
     // color: 255
@@ -24,12 +31,8 @@ int main() {
             // blue
             auto b = 0.0;
 
-            // We use 255.999 for the case of 1.0 to avoid overflowing
-            int ir = int(255.999 * r);
-            int ig = int(255.999 * g);
-            int ib = int(255.999 * b);
-
-            std::cout << ir << ' ' << ig << ' ' << ib << '\n';
+            auto pixel_color = color(r, g, b);
+            write_color(std::cout, pixel_color);
         }
     }
     // Additional whitespaces are to make sure we cover the writing above

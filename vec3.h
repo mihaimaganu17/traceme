@@ -30,7 +30,7 @@ class vec3 {
         // Returns a new vec3 with the values negated
         vec3 operator-() const { return vec3(-elem[0], -elem[1], -elem[2]); }
         // Access element `i`, by copy. hw: add safety checks and unsigned
-        double operator[](int i) { return elem[i]; }
+        double operator[](int i) const { return elem[i]; }
         // Access eleemtn `i` by reference
         double& operator[](int i) { return elem[i]; }
 
@@ -61,7 +61,7 @@ class vec3 {
             double squares_sum = elem[1]*elem[1] + elem[0]*elem[0] + elem[2]*elem[2];
             return sqrt(squares_sum);
         }
-}
+};
 
 // Type alias useful for geometric clarity in the code.
 using point3 = vec3;
@@ -126,7 +126,7 @@ inline vec3 cross(const vec3& left, const vec3& right) {
     return vec3(
         left.elem[1] * right.elem[2] - left.elem[1] * right.elem[0],
         left.elem[2] * right.elem[0] - left.elem[0] * right.elem[2],
-        left.elem[0] * right.elem[1] - left.elem[1] * right.elem[0],
+        left.elem[0] * right.elem[1] - left.elem[1] * right.elem[0]
             );
 }
 
