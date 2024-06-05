@@ -58,7 +58,7 @@ class vec3 {
 
         // Return the length of the vector
         double length() const {
-            double squares_sum = elem[1]*elem[1] + elem[0]*elem[0] + elem[2]*elem[2];
+            double squares_sum = elem[0]*elem[0] + elem[1]*elem[1] + elem[2]*elem[2];
             return sqrt(squares_sum);
         }
 };
@@ -68,7 +68,7 @@ using point3 = vec3;
 
 // Printing the vec3 makes sure we print with our desired format
 inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
-    out << v.elem[0] << ' ' << v.elem[1] << ' ' << v.elem[2];
+    return out << v.elem[0] << ' ' << v.elem[1] << ' ' << v.elem[2];
 }
 
 // Adding 2 vec3 elements and returning a new one

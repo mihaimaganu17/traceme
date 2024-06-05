@@ -1,13 +1,85 @@
 // Include our own defined headers
 #include "vec3.h"
+#include "ray.h"
 #include "color.h"
 
 #include <iostream>
 
+// Returns the color for a given scene ray.
+// This function will linearly blend white and blue depending on the height of the 𝑦 coordinate
+// after scaling the ray direction to unit length (so −1.0<𝑦<1.0).
+// Because we're looking at the 𝑦 height after normalizing the vector, you'll notice a horizontal
+// gradient to the color in addition to the vertical gradient.
+
+// When 𝑎=1.0, we want blue. When 𝑎=0.0, we want white. In between, we want a blend.
+// This forms a “linear blend”, or “linear interpolation”.
+// This is commonly referred to as a lerp between two values.
+color ray_color(const ray& r) {
+    // Get the unit vector from out ray.
+    vec3 unit_direction = unit_vector(r.direction());
+    // We are blending linearly, based on the y height (top to bottom). So we compute a as the
+    // pixel.
+    auto a = 0.5*(unit_direction.y() + 1.0);
+    // We want to return a blend between blue and white.
+    color white(1.0, 1.0, 1.0);
+    // 170, 199, 250
+    color light_blue(0.2, 0.5, 1.0);
+    // blendedValue = (1 - a) * startValue + a * endValue.
+    return ((1.0-a) * white + a * light_blue);
+}
+
 int main() {
-    // Image configuration
-    int image_width = 256;
-    int image_height = 256;
+    // Desired aspect ratio of the image. Using this and the width we can calculate the images
+    // height, making sure the aspect ratio is preserved
+    auto aspect_ratio = 16.0 / 9.0; // widht / height
+    int image_width = 400;
+
+    // Calculate the image height and make sure that it's at least 1.
+    int image_height = int(image_width / aspect_ratio);
+    image_height = (image_height < 1) ? 1 : image_height;
+
+    // Camera
+    // Focal length is the distrance from the camera to the viewport
+    auto focal_length = 1.0;
+    // Set the camera origin.
+    // In this coordinate sceme: Y points up, x points to the right and z point straight to the
+    // viewport, orthogonally
+    auto camera_center = point3(0,0,0);
+
+    // The viewport is a virtual rectangle in the 3D world that contains the grid of image pixel
+    // locations. If pixels are space the same distance horizontally as they are vertically, the
+    // viewport that bounds them will have the same aspect ratio as the rendered image.
+    // The distance between 2 adjacent pixels is called the pixel spacing and square pixels is the
+    // standard.
+    auto viewport_height = 2.0;
+    // Viewport widths less than one are ok since they are real valued.
+    auto viewport_width = viewport_height * (double(image_width) / image_height);
+
+    // We define 2 vectors to navigate the pixel grid of the viewport.
+    // Horizontal navigation - left to right. Since X points to the right, we set it to maximum.
+    auto viewport_u = vec3(viewport_width, 0, 0);
+    // Vertical navigation - top to bottom. Since Y points up, we set it to the maximum value.
+    // Since our Y coordinate for the image increases as we go render downwards, the viewports Y
+    // decreases, since the coordinate system of the camera has Y pointing up. This means the 2 Ys
+    // are inverted.
+    auto viewport_v = vec3(0, -viewport_height, 0);
+
+    // We will define the distance from pixel to pixel (of the viewport) as a delta, which has to
+    // be computed both horizontally and vertically.
+    auto pixel_delta_u = viewport_u / image_width;
+    auto pixel_delta_v = viewport_v / image_height;
+
+    // Calculate the location of the upper-left pixel
+    // Our pixel grid will be inset from the viewport edges by half the pixel-to-pixel distance.
+    // This way, our viewport area is evenly divided into width × height identical regions.
+    // Because the camera origin is theoretically orthogonal to the center of the viewport, the
+    // most upper left region of the viewport is found by substracting half of every distance.
+    // In the schema, this is Q.
+    auto viewport_upper_left = camera_center - vec3(0,0,focal_length) - viewport_u/2 - viewport_v/2;
+    // The pixel grid is inset by the viewport edges by half-pixel, such that each pixel has the
+    // same space region around it. That is why, in order to find the first pixel, we have to move
+    // by half pixel from the viewports upper left region (Q).
+    auto pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
     // Rendering
 
@@ -16,7 +88,7 @@ int main() {
     // P3
     // W H
     // 255
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+    std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
 
     for (int j = 0; j < image_height; j++) {
         // Log progress
@@ -24,14 +96,16 @@ int main() {
         // to the stderr handle
         std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
         for (int i = 0; i < image_width; i++) {
-            // red
-            auto r = double(i) / (image_width - 1);
-            // green
-            auto g = double(j) / (image_height - 1);
-            // blue
-            auto b = 0.0;
+            // Compute the pixel center of the current pixel. This is the done by moving the 2
+            // viewport deltas by the amount of the current image reion.
+            auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+            // Compute the ray direction going from the camera to the pixel.
+            auto ray_direction = pixel_center - camera_center;
+            // Initialize the ray
+            ray r(camera_center, ray_direction);
+            // Contruct the color for the pixel;
+            color pixel_color = ray_color(r);
 
-            auto pixel_color = color(r, g, b);
             write_color(std::cout, pixel_color);
         }
     }
