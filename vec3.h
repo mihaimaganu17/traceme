@@ -35,7 +35,7 @@ class vec3 {
         double& operator[](int i) { return elem[i]; }
 
         // Add `other` to the current vec3
-        vec3& operator+(const vec3& other) {
+        vec3& operator+=(const vec3& other) {
             elem[0] += other.elem[0];
             elem[1] += other.elem[1];
             elem[2] += other.elem[2];
@@ -58,8 +58,11 @@ class vec3 {
 
         // Return the length of the vector
         double length() const {
-            double squares_sum = elem[0]*elem[0] + elem[1]*elem[1] + elem[2]*elem[2];
-            return sqrt(squares_sum);
+            return sqrt(length_squared());
+        }
+
+        double length_squared() const {
+            return elem[0]*elem[0] + elem[1]*elem[1] + elem[2]*elem[2];
         }
 };
 
@@ -107,7 +110,7 @@ inline vec3 operator*(double s, const vec3& v) {
 
 // Division by scalar value
 inline vec3 operator/(const vec3& v, double s) {
-    return (1 / s) * v;
+    return v * (1.0 / s);
 }
 
 // Dot product of 2 vec3's
@@ -124,7 +127,7 @@ inline double dot(const vec3& left, const vec3& right) {
 // (3) angular momentum of a rotating object.
 inline vec3 cross(const vec3& left, const vec3& right) {
     return vec3(
-        left.elem[1] * right.elem[2] - left.elem[1] * right.elem[0],
+        left.elem[1] * right.elem[2] - left.elem[2] * right.elem[1],
         left.elem[2] * right.elem[0] - left.elem[0] * right.elem[2],
         left.elem[0] * right.elem[1] - left.elem[1] * right.elem[0]
             );
@@ -135,4 +138,3 @@ inline vec3 unit_vector(const vec3& v) {
 }
 
 #endif
-

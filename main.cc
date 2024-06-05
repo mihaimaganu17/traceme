@@ -23,7 +23,7 @@ color ray_color(const ray& r) {
     // We want to return a blend between blue and white.
     color white(1.0, 1.0, 1.0);
     // 170, 199, 250
-    color light_blue(0.2, 0.5, 1.0);
+    color light_blue(0.5, 0.7, 1.0);
     // blendedValue = (1 - a) * startValue + a * endValue.
     return ((1.0-a) * white + a * light_blue);
 }
