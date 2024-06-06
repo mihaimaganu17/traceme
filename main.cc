@@ -2,34 +2,9 @@
 #include "vec3.h"
 #include "ray.h"
 #include "color.h"
+#include "sphere.h"
 
 #include <iostream>
-
-// Computes whether or not, a casted ray 'r' intersect the sphere defined by a `center` point and
-// a `radius` and returns the `t` where the ray intersects the sphere for the first time.
-double hit_sphere(const point3& center, double radius, const ray& r) {
-    // We need to solve a*x^2 + b*x + c = 0
-    // Vector between the center of the sphere and the origin of the ray cast
-    auto ray_to_sphere_center = center - r.origin();
-    auto a = dot(r.direction(), r.direction());
-    // We actually consider replacing b with (-2h), which gives
-    auto h = dot(r.direction(), ray_to_sphere_center);
-    auto c = dot(ray_to_sphere_center, ray_to_sphere_center) - radius * radius;
-
-    // We need to compute the term for the square root and check it's sign
-    double discriminant = h - a * c;
-
-    // If the term is negative, we do not have any real solution so the ray never intersect the
-    // sphere
-    if (discriminant < 0) {
-        return -1.0;
-    // If the term is zero or positive , there is at least one solution and thus the ray cast
-    // intersects the sphere one or 2 points. Currently, we only care about the first hit, which
-    // we can see, and thus we only return the - sqrt solution
-    } else {
-        return ((h - sqrt(discriminant))/ * a);
-    }
-}
 
 // Returns the color for a given scene ray.
 // This function will linearly blend white and blue depending on the height of the 𝑦 coordinate
@@ -47,17 +22,12 @@ color ray_color(const ray& r) {
     point3 sphere_center(0, 0, -1);
     // Git the sphere a radius
     double sphere_radius(0.5);
-    // Compute the first point where we hit the sphere, if any
-    double t = hit_sphere(sphere_center, sphere_radius, r);
 
-    // If t is negative, we did not hit the sphere, so we ignore that
-    if (t > 0.0) {
-        // Compute the normal
-        // First we compute the ray vector
-        vec3 ray_vec = r.at(t);
-        // Then we compute the normal (vec pependicular to the hit point) and normalize it, using
-        // the radius of the sphere.
-        vec3 normal = unit_vector(ray_vec - sphere_center);
+    sphere s(sphere_center, sphere_radius);
+    hit_record hit;
+    // Compute the first point where we hit the sphere, if any
+    if (s.hit(r, 0.0, 10.0, hit) == true) {
+        auto normal = hit.normal;
         // Now we map each component to interval from 0 to 1 and at the same time, we map it to (r,
         // g, b). We add plus 1 to ensure that we cover the entire [0, 1] interval
         return 0.5*color(normal.x() + 1, normal.y() + 1, normal.z() + 1);
