@@ -12,11 +12,12 @@ double hit_sphere(const point3& center, double radius, const ray& r) {
     // Vector between the center of the sphere and the origin of the ray cast
     auto ray_to_sphere_center = center - r.origin();
     auto a = dot(r.direction(), r.direction());
-    auto b = -2.0 * dot(r.direction(), ray_to_sphere_center);
+    // We actually consider replacing b with (-2h), which gives
+    auto h = dot(r.direction(), ray_to_sphere_center);
     auto c = dot(ray_to_sphere_center, ray_to_sphere_center) - radius * radius;
 
     // We need to compute the term for the square root and check it's sign
-    double discriminant = b*b - 4.0 * a * c;
+    double discriminant = h - a * c;
 
     // If the term is negative, we do not have any real solution so the ray never intersect the
     // sphere
@@ -26,7 +27,7 @@ double hit_sphere(const point3& center, double radius, const ray& r) {
     // intersects the sphere one or 2 points. Currently, we only care about the first hit, which
     // we can see, and thus we only return the - sqrt solution
     } else {
-        return ((-b - sqrt(discriminant))/ 2.0 * a);
+        return ((h - sqrt(discriminant))/ * a);
     }
 }
 
