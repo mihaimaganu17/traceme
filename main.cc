@@ -5,6 +5,30 @@
 
 #include <iostream>
 
+// Computes whether or not, a casted ray 'r' intersect the sphere defined by a `center` point and
+// a `radius`
+bool hit_sphere(const point3& center, double radius, const ray& r) {
+    // We need to solve a*x^2 + b*x + c = 0
+    // Vector between the center of the sphere and the origin of the ray cast
+    auto ray_to_sphere_center = center - r.origin();
+    auto a = dot(r.direction(), r.direction());
+    auto b = -2.0 * dot(r.direction(), ray_to_sphere_center);
+    auto c = dot(ray_to_sphere_center, ray_to_sphere_center) - radius * radius;
+
+    // We need to compute the term for the square root and check it's sign
+    double sqrt_term = b*b - 4.0 * a * c;
+
+    // If the term is negative, we do not have any real solution so the ray never intersect the
+    // sphere
+    if (sqrt_term < 0) {
+        return false;
+    // If the term is zero or positive , there is at least one solution and thus the ray cast
+    // intersects the sphere one or 2 points
+    } else {
+        return true;
+    }
+}
+
 // Returns the color for a given scene ray.
 // This function will linearly blend white and blue depending on the height of the 𝑦 coordinate
 // after scaling the ray direction to unit length (so −1.0<𝑦<1.0).
@@ -15,6 +39,14 @@
 // This forms a “linear blend”, or “linear interpolation”.
 // This is commonly referred to as a lerp between two values.
 color ray_color(const ray& r) {
+    // Place the center of the sphere on the `-1` of the z-axis.
+    point3 sphere_center(0, 0, -1);
+    // Git the sphere a radius
+    double sphere_radius(0.5);
+    // If we hit the sphere, color it with a different color
+    if (hit_sphere(sphere_center, sphere_radius, r)) {
+        return color(1, 0, 0);
+    }
     // Get the unit vector from out ray.
     vec3 unit_direction = unit_vector(r.direction());
     // We are blending linearly, based on the y height (top to bottom). So we compute a as the
