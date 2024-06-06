@@ -6,8 +6,8 @@
 #include <iostream>
 
 // Computes whether or not, a casted ray 'r' intersect the sphere defined by a `center` point and
-// a `radius`
-bool hit_sphere(const point3& center, double radius, const ray& r) {
+// a `radius` and returns the `t` where the ray intersects the sphere for the first time.
+double hit_sphere(const point3& center, double radius, const ray& r) {
     // We need to solve a*x^2 + b*x + c = 0
     // Vector between the center of the sphere and the origin of the ray cast
     auto ray_to_sphere_center = center - r.origin();
@@ -16,16 +16,17 @@ bool hit_sphere(const point3& center, double radius, const ray& r) {
     auto c = dot(ray_to_sphere_center, ray_to_sphere_center) - radius * radius;
 
     // We need to compute the term for the square root and check it's sign
-    double sqrt_term = b*b - 4.0 * a * c;
+    double discriminant = b*b - 4.0 * a * c;
 
     // If the term is negative, we do not have any real solution so the ray never intersect the
     // sphere
-    if (sqrt_term < 0) {
-        return false;
+    if (discriminant < 0) {
+        return -1.0;
     // If the term is zero or positive , there is at least one solution and thus the ray cast
-    // intersects the sphere one or 2 points
+    // intersects the sphere one or 2 points. Currently, we only care about the first hit, which
+    // we can see, and thus we only return the - sqrt solution
     } else {
-        return true;
+        return ((-b - sqrt(discriminant))/ 2.0 * a);
     }
 }
 
@@ -39,13 +40,26 @@ bool hit_sphere(const point3& center, double radius, const ray& r) {
 // This forms a “linear blend”, or “linear interpolation”.
 // This is commonly referred to as a lerp between two values.
 color ray_color(const ray& r) {
-    // Place the center of the sphere on the `-1` of the z-axis.
+    // Place the center of the sphere on the `-1` of the z-axis. Essentially meaning this is at
+    // distance 1 orthogonal in front of the camera. Setting z to a higher value, would shrink the
+    // sphere, as it would further.
     point3 sphere_center(0, 0, -1);
     // Git the sphere a radius
     double sphere_radius(0.5);
-    // If we hit the sphere, color it with a different color
-    if (hit_sphere(sphere_center, sphere_radius, r)) {
-        return color(1, 0, 0);
+    // Compute the first point where we hit the sphere, if any
+    double t = hit_sphere(sphere_center, sphere_radius, r);
+
+    // If t is negative, we did not hit the sphere, so we ignore that
+    if (t > 0.0) {
+        // Compute the normal
+        // First we compute the ray vector
+        vec3 ray_vec = r.at(t);
+        // Then we compute the normal (vec pependicular to the hit point) and normalize it, using
+        // the radius of the sphere.
+        vec3 normal = unit_vector(ray_vec - sphere_center);
+        // Now we map each component to interval from 0 to 1 and at the same time, we map it to (r,
+        // g, b). We add plus 1 to ensure that we cover the entire [0, 1] interval
+        return 0.5*color(normal.x() + 1, normal.y() + 1, normal.z() + 1);
     }
     // Get the unit vector from out ray.
     vec3 unit_direction = unit_vector(r.direction());
@@ -57,6 +71,8 @@ color ray_color(const ray& r) {
     // 170, 199, 250
     color light_blue(0.5, 0.7, 1.0);
     // blendedValue = (1 - a) * startValue + a * endValue.
+    // (1.0 - a) tells that, while we go down in the image rendering in the viewport (y decreseases)
+    // we have more white, and less blue.
     return ((1.0-a) * white + a * light_blue);
 }
 
@@ -71,7 +87,8 @@ int main() {
     image_height = (image_height < 1) ? 1 : image_height;
 
     // Camera
-    // Focal length is the distrance from the camera to the viewport
+    // Focal length is the distance from the camera to the viewport. This is different from the
+    // `z` coordinate of the object that we are viewing.
     auto focal_length = 1.0;
     // Set the camera origin.
     // In this coordinate sceme: Y points up, x points to the right and z point straight to the
@@ -79,7 +96,7 @@ int main() {
     auto camera_center = point3(0,0,0);
 
     // The viewport is a virtual rectangle in the 3D world that contains the grid of image pixel
-    // locations. If pixels are space the same distance horizontally as they are vertically, the
+    // locations. If pixels are spaced the same distance horizontally as they are vertically, the
     // viewport that bounds them will have the same aspect ratio as the rendered image.
     // The distance between 2 adjacent pixels is called the pixel spacing and square pixels is the
     // standard.
@@ -106,7 +123,7 @@ int main() {
     // This way, our viewport area is evenly divided into width × height identical regions.
     // Because the camera origin is theoretically orthogonal to the center of the viewport, the
     // most upper left region of the viewport is found by substracting half of every distance.
-    // In the schema, this is Q.
+    // In the schema, this is Q of P(t) = Q + t * d
     auto viewport_upper_left = camera_center - vec3(0,0,focal_length) - viewport_u/2 - viewport_v/2;
     // The pixel grid is inset by the viewport edges by half-pixel, such that each pixel has the
     // same space region around it. That is why, in order to find the first pixel, we have to move
