@@ -9,7 +9,7 @@ class sphere: public hittable {
         // Constructor.
         sphere(const point3& center, double radius) : center(center), radius(fmax(0, radius)) {}
 
-        bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {
+        bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const override {
             // We need to solve a*x^2 + b*x + c = 0
             // Vector between the center of the sphere and the origin of the ray cast
             auto ray_to_sphere_center = center - r.origin();
@@ -34,10 +34,10 @@ class sphere: public hittable {
             double sqrt_d = sqrt(discriminant);
             double root = (h - sqrt_d)/ a;
 
-            if (root <= t_min || t_max <= root) {
+            if (!ray_t_interval.surrounds(root)) {
                 // We try with the next root
                 root = (h + sqrt_d) / a;
-                if (root <= t_min || t_max <= root) {
+                if (!ray_t_interval.surrounds(root)) {
                     return false;
                 }
             }

@@ -18,7 +18,7 @@
 color ray_color(const ray& r, const hittable_list& world) {
     hit_record hit;
     // Compute the points where we hit objects from the world, if any
-    if (world.hit(r, 0.0, infinity, hit) == true) {
+    if (world.hit(r, interval(0.0, infinity), hit) == true) {
         auto normal = hit.normal;
         // Now we map each component to interval from 0 to 1 and at the same time, we map it to (r,
         // g, b). We add plus 1 to ensure that we cover the entire [0, 1] interval

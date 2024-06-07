@@ -38,6 +38,6 @@ class hittable {
 
         // A hit computed for a casted ray `r`, which only occurs if the result `t` is in between the
         // given interval `tmin` < t < `tmax`
-        virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
+        virtual bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const = 0;
 };
 #endif

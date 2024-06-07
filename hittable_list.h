@@ -29,18 +29,18 @@ class hittable_list : public hittable {
         // any of the objects in betwee ray_tmin and ray_tmax location ranges.
         // Additionally, it updates the `rec` object with the closest record hit from all the
         // objects in the list.
-        bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const override {
+        bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const override {
             // Temporary storeage for the hit record
             hit_record temp_rec;
             // Records whether the ray hit at least 1 object
             bool hit_anything = false;
             // Keep track of the closes object we have hit so far with the ray
-            auto closest_so_far = ray_tmax;
+            auto closest_so_far = ray_t_interval.max;
 
             // For each object in the list
             for (const auto& object : objects) {
                 // If we hit wit the ray an the object is closer than the previous recorded
-                if (object->hit(r, ray_tmin, closest_so_far, temp_rec)) {
+                if (object->hit(r, interval(ray_t_interval.min, closest_so_far), temp_rec)) {
                     // We hit something, so we log that
                     hit_anything = true;
                     // Because we hit with the previous interval, this means we now have a closer
