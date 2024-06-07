@@ -49,9 +49,9 @@ class sphere: public hittable {
             // First we compute the ray vector
             // Then we compute the normal (vec pependicular to the hit point) and normalize it, using
             // the radius of the sphere.
-            vec3 normal = unit_vector(rec.p - center);
-            // Alternatively, this is (rec.p - sphere_center ) / radius
-            rec.normal = normal;
+            vec3 outward_normal = unit_vector(rec.p - center);
+            // Add surface determination for the object
+            rec.set_face_normal(r, outward_normal);
 
             return true;
         }
