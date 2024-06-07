@@ -3,6 +3,7 @@
 #include "ray.h"
 #include "color.h"
 #include "sphere.h"
+#include "hittable_list.h"
 
 #include <iostream>
 

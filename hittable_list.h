@@ -3,7 +3,7 @@
 
 #include "hittable.h"
 
-#include <memory>
+//#include <memory>
 #include <vector>
 
 using std::make_shared;
@@ -17,7 +17,7 @@ class hittable_list : public hittable {
 
         // Constructors
         hittable_list() {}
-        hittable_list(share_ptr<hittable> object) { add(object); }
+        hittable_list(shared_ptr<hittable> object) { add(object); }
 
         // Adds a new object to the list
         void add(shared_ptr<hittable> object) {
@@ -55,6 +55,6 @@ class hittable_list : public hittable {
             // Return whether or not we hit something
             return hit_anything;
         }
-}
+};
 
 #endif
