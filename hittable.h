@@ -17,7 +17,7 @@ class hit_record {
         void set_face_normal(const ray& r, const vec3& outward_normal) {
             // Parameter `outward_normal` is assumed to have unit length.
             // If the dot product of the 2 is positive, the ray is inside the sphere
-            if (dot(r.direction(), outward_normal) > 0.0) {
+            if (dot(r.direction(), outward_normal) >= 0.0) {
                 // We negate the normal such that it does not point against the ray and points
                 // outwards
                 normal = -outward_normal;

@@ -1,8 +1,8 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include "traceme.h"
 #include "hittable.h"
-#include "vec3.h"
 
 class sphere: public hittable {
     public:
@@ -19,7 +19,7 @@ class sphere: public hittable {
             auto c = dot(ray_to_sphere_center, ray_to_sphere_center) - radius * radius;
 
             // We need to compute the term for the square root and check it's sign
-            double discriminant = h - a * c;
+            double discriminant = h*h - a * c;
 
             // If the term is negative, we do not have any real solution so the ray never intersect the
             // sphere
@@ -49,7 +49,7 @@ class sphere: public hittable {
             // First we compute the ray vector
             // Then we compute the normal (vec pependicular to the hit point) and normalize it, using
             // the radius of the sphere.
-            vec3 outward_normal = unit_vector(rec.p - center);
+            vec3 outward_normal = (rec.p - center) / radius;
             // Add surface determination for the object
             rec.set_face_normal(r, outward_normal);
 

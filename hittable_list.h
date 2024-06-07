@@ -2,17 +2,15 @@
 #define HITTABLE_LIST_H
 
 #include "hittable.h"
+#include "traceme.h"
 
-//#include <memory>
 #include <vector>
-
-using std::make_shared;
-using std::shared_ptr;
 
 class hittable_list : public hittable {
     public:
         // We wrap thei every object in the list in a shared pointer, such that we can share
-        // ownership of the object
+        // ownership of the object. This means that every object is reference counted for every
+        // reference other objects have of it. Very similar to Rc in Rust.
         std::vector<shared_ptr<hittable>> objects;
 
         // Constructors
@@ -40,7 +38,7 @@ class hittable_list : public hittable {
             auto closest_so_far = ray_tmax;
 
             // For each object in the list
-            for (const auto&object : objects) {
+            for (const auto& object : objects) {
                 // If we hit wit the ray an the object is closer than the previous recorded
                 if (object->hit(r, ray_tmin, closest_so_far, temp_rec)) {
                     // We hit something, so we log that

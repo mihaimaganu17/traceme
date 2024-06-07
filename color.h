@@ -2,8 +2,7 @@
 #define COLOR_H
 
 #include "vec3.h"
-
-#include <iostream>
+#include "traceme.h"
 
 using color = vec3;
 

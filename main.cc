@@ -1,11 +1,10 @@
 // Include our own defined headers
-#include "vec3.h"
-#include "ray.h"
-#include "color.h"
+#include "traceme.h"
 #include "sphere.h"
+#include "hittable.h"
 #include "hittable_list.h"
 
-#include <iostream>
+
 
 // Returns the color for a given scene ray.
 // This function will linearly blend white and blue depending on the height of the 𝑦 coordinate
@@ -16,22 +15,15 @@
 // When 𝑎=1.0, we want blue. When 𝑎=0.0, we want white. In between, we want a blend.
 // This forms a “linear blend”, or “linear interpolation”.
 // This is commonly referred to as a lerp between two values.
-color ray_color(const ray& r) {
-    // Place the center of the sphere on the `-1` of the z-axis. Essentially meaning this is at
-    // distance 1 orthogonal in front of the camera. Setting z to a higher value, would shrink the
-    // sphere, as it would further.
-    point3 sphere_center(0, 0, -1);
-    // Git the sphere a radius
-    double sphere_radius(0.5);
-
-    sphere s(sphere_center, sphere_radius);
+color ray_color(const ray& r, const hittable_list& world) {
     hit_record hit;
-    // Compute the first point where we hit the sphere, if any
-    if (s.hit(r, 0.0, 10.0, hit) == true) {
+    // Compute the points where we hit objects from the world, if any
+    if (world.hit(r, 0.0, infinity, hit) == true) {
         auto normal = hit.normal;
         // Now we map each component to interval from 0 to 1 and at the same time, we map it to (r,
         // g, b). We add plus 1 to ensure that we cover the entire [0, 1] interval
         return 0.5*color(normal.x() + 1, normal.y() + 1, normal.z() + 1);
+        // Alternatively, we can write hit.normal + color(1,1,1)
     }
     // Get the unit vector from out ray.
     vec3 unit_direction = unit_vector(r.direction());
@@ -57,6 +49,12 @@ int main() {
     // Calculate the image height and make sure that it's at least 1.
     int image_height = int(image_width / aspect_ratio);
     image_height = (image_height < 1) ? 1 : image_height;
+
+    // World / Scene configuration
+    hittable_list world;
+
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
     // Camera
     // Focal length is the distance from the camera to the viewport. This is different from the
@@ -124,8 +122,8 @@ int main() {
             auto ray_direction = pixel_center - camera_center;
             // Initialize the ray
             ray r(camera_center, ray_direction);
-            // Contruct the color for the pixel;
-            color pixel_color = ray_color(r);
+            // Contruct the color for the pixel in the surface world;
+            color pixel_color = ray_color(r, world);
 
             write_color(std::cout, pixel_color);
         }
