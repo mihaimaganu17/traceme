@@ -167,7 +167,12 @@ class camera {
             // that it will intersect that surface again
             if (world.hit(r, interval(0.001, infinity), hit) == true) {
                 // We get a random new reflection direction, using rejection method.
-                vec3 reflect_direction = random_on_hemisphere(hit.normal);
+                // vec3 reflect_direction = random_on_hemisphere(hit.normal);
+                // Create a ray relfection direction from the Lambertian distribution. This can
+                // be easily understood with the vector addition triangle rule and the explanation
+                // from 9.4 True Lambertian Reflection from:
+                // https://raytracing.github.io/books/RayTracingInOneWeekend.html#overview
+                vec3 reflect_direction = hit.normal + random_unit_vector();
                 // Now we map each component to interval from 0 to 1 and at the same time, we map
                 // it to (r,
                 // g, b). We add plus 1 to ensure that we cover the entire [0, 1] interval
