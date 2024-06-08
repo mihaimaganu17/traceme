@@ -22,6 +22,8 @@ int main() {
     cam.image_width = 400;
     // Set the number of ray samples we want to cast for each pixel to do anti-aliasing
     cam.samples_per_pixel = 100;
+    // Set the number of times we want the casted rays to reflect on surfaces of the world
+    cam.max_depth = 50;
 
     cam.render(world);
 }

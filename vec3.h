@@ -64,6 +64,16 @@ class vec3 {
         double length_squared() const {
             return elem[0]*elem[0] + elem[1]*elem[1] + elem[2]*elem[2];
         }
+
+        // Generates a vec3 with each element randomized between [0, 1]
+        static vec3 random() {
+            return vec3(random_double(), random_double(), random_double());
+        }
+
+        // Generates a vec3 with each element randomized between [min, max]
+        static vec3 random(double min, double max) {
+            return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+        }
 };
 
 // Type alias useful for geometric clarity in the code.
@@ -135,6 +145,46 @@ inline vec3 cross(const vec3& left, const vec3& right) {
 
 inline vec3 unit_vector(const vec3& v) {
     return v / v.length();
+}
+
+// We use the rejection method to generate a random vector inside of the unit sphere.
+// We pick a random point in the unit cube and reject it until is also in the unit sphere.
+inline vec3 random_in_unit_sphere() {
+    // Keep going
+    while (true) {
+        // Pick a random point in the unit cube
+        auto p = vec3::random(-1, 1);
+        // The unit sphere has a radiu of 1
+        auto unit_sphere_radius = 1.0;
+        // We consider the center of the sphere (sx, sy, sz)
+        // A point (x, y, z) is in the unit sphere if it satisfies:
+        // (x - sx)^2 + (y - sy)^2 + (z - sz)^2 < r^2
+        // In our case, the unit sphere center point is (0, 0, 0), so it becomes
+        // x^2 + y^2 + z^2 < r^2. Which is essentially the dot product of p with p < 1
+        if (p.length_squared() < 1) {
+            return p;
+        }
+    }
+}
+
+// We normalize the random vector inside a sphere to obtain the point ON the sphere. Which
+// essentially is solving `r` for r = sqrt(dot(p, p))
+inline vec3 random_unit_vector() {
+    return unit_vector(random_in_unit_sphere());
+}
+
+// Determine if the vector is on the right hemisphere. We can do that by comparing it with the
+// vector normal. If their dot product is positive, they are on the same side of the hemisphere.
+// If it is negative, then they are on diferent sides and we need to invert the vector.
+inline vec3 random_on_hemisphere(const vec3& normal) {
+    auto random_reflect_ray = random_unit_vector();
+
+    if (dot(normal, random_reflect_ray) > 0.0) {
+        return random_reflect_ray;
+    } else {
+        // invert the vector so we are on the same side as the normal
+        return -random_reflect_ray;
+    }
 }
 
 #endif

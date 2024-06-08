@@ -18,6 +18,9 @@ class camera {
         int image_width = 100;
         // Count of random samples to be generated per pixel for anti-aliasing effect.
         int samples_per_pixel = 10;
+        // Limits the number of times a casted ray reflects on surfaces of the world, such that we
+        // do not blow the stack
+        unsigned int max_depth = 10;
 
         /* Camera Parameters */
         void render(const hittable& world) {
@@ -46,7 +49,7 @@ class camera {
                         // Get a new random ray in the pixel's region square
                         ray r = get_ray(i, j);
                         // Add that color to our end result
-                        pixel_color += ray_color(r, world);
+                        pixel_color += ray_color(r, max_depth, world);
                     }
                     // Write the color, minding the fact that it has to be scaled.
                     write_color(std::cout, pixel_samples_scale * pixel_color);
@@ -141,15 +144,39 @@ class camera {
         // When 𝑎=1.0, we want blue. When 𝑎=0.0, we want white. In between, we want a blend.
         // This forms a “linear blend”, or “linear interpolation”.
         // This is commonly referred to as a lerp between two values.
-        color ray_color(const ray& r, const hittable& world) const {
+        color ray_color(const ray& r, unsigned int depth, const hittable& world) const {
+            // Check if we still want to reflect
+            if (depth <= 0) {
+                return color(0, 0, 0);
+            }
+
             hit_record hit;
+
             // Compute the points where we hit objects from the world, if any
-            if (world.hit(r, interval(0.0, infinity), hit) == true) {
-                auto normal = hit.normal;
+            //
+            // Material science
+            // If a ray bounces off of a material and keeps 100% of its color, then we say that the
+            // material is white. If a ray bounces off of a material and keeps 0% of its color,
+            // then we say that the material is black.
+            //
+            // Fixing shadow Acne
+            //
+            // Start of the interval is 0.001, because a ray intersection with a surface is
+            // susceptible to floating point rounding errors, meaning the intersection point might
+            // not always be on the surface. If it is below the surface, there is a high change
+            // that it will intersect that surface again
+            if (world.hit(r, interval(0.001, infinity), hit) == true) {
+                // We get a random new reflection direction, using rejection method.
+                vec3 reflect_direction = random_on_hemisphere(hit.normal);
                 // Now we map each component to interval from 0 to 1 and at the same time, we map
                 // it to (r,
                 // g, b). We add plus 1 to ensure that we cover the entire [0, 1] interval
-                return 0.5*color(normal.x() + 1, normal.y() + 1, normal.z() + 1);
+                // As a first demo of our new diffuse materail we'll set the ray_color function to
+                // return 50% of the color from a bounce.
+                // We construct a new ray that reflects back with the above direction
+                ray reflect_ray(hit.p, reflect_direction);
+                // Now we recursively reflect that in the world
+                return 0.5 * ray_color(reflect_ray, depth - 1, world);
                 // Alternatively, we can write hit.normal + color(1,1,1)
             }
             // Get the unit vector from out ray.
