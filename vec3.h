@@ -5,8 +5,9 @@
 #include <cmath>
 #include <iostream>
 
-// Adding `sqrt` function to our namespace for convenience
+// Adding `std` library functions to our namespace for convenience
 using std::sqrt;
+using std::fabs;
 
 // Used to define colors, locations, directions, offsets, whatever.
 // Worth trying for homework: Split this into proper classes
@@ -73,6 +74,13 @@ class vec3 {
         // Generates a vec3 with each element randomized between [min, max]
         static vec3 random(double min, double max) {
             return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+        }
+
+        // Returns `true` if the vector is very close (in all dimesions) to zero
+        bool near_zero() const {
+            // A value close to 0
+            auto s = 1e-8;
+            return (fabs(elem[0]) < s) && (fabs(elem[1]) < s) && (fabs(elem[2]) < s);
         }
 };
 

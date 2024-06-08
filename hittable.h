@@ -3,15 +3,24 @@
 
 #include "ray.h"
 
+// Tell the compiler this is a class that will be defined later (in material.h). This solves a
+// circular reference issue, where hit_record and material need to keep a reference of each other.
+class material;
+
 // Logs the occurence of a single hit from the intersection of a ray cast and a surface or volume
 // (an object in the scene)
 class hit_record {
     public:
+        // Point where the ray hit the object
         point3 p;
+        // Normal at the intersection point
         vec3 normal;
+        // The material of the surface that we hit.
+        shared_ptr<material> mat;
+        // Gives the length of the ray that hit
         double t;
-        // Store whether or not the ray is coming from the inside or outside and whether or not the
-        // normal points against the ray or not.
+        // Records whether or not the ray hit the surface from the outside (true) or the inside
+        // (false)
         bool front_face;
 
         void set_face_normal(const ray& r, const vec3& outward_normal) {

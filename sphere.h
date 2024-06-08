@@ -7,7 +7,9 @@
 class sphere: public hittable {
     public:
         // Constructor.
-        sphere(const point3& center, double radius) : center(center), radius(fmax(0, radius)) {}
+        sphere(const point3& center, double radius) : center(center), radius(fmax(0, radius)) {
+            // TODO: Initialize the material pointer `mat`.
+        }
 
         bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const override {
             // We need to solve a*x^2 + b*x + c = 0
@@ -52,6 +54,8 @@ class sphere: public hittable {
             vec3 outward_normal = (rec.p - center) / radius;
             // Add surface determination for the object
             rec.set_face_normal(r, outward_normal);
+            // Give the hit record information about the material of the surface that was just hit
+            rec.mat = mat;
 
             return true;
         }
@@ -59,5 +63,6 @@ class sphere: public hittable {
     private:
         point3 center;
         double radius;
+        shared_ptr<material> mat;
 };
 #endif
