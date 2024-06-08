@@ -30,6 +30,15 @@ class interval {
             return min < x && x < max;
         }
 
+        // If the value is within `min` and `max`, it is returned. Otherwise, we return the nearest
+        // boundary. Basically we return the value that is clamped between the other 2 values from
+        // (x, min, max)
+        double clamp(double x) const {
+            if (x < min) return min;
+            if (x > max) return max;
+            return x;
+        }
+
         // Predefined intervals
         static const interval empty, universe;
 };

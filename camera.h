@@ -16,6 +16,9 @@ class camera {
         // height, making sure the aspect ratio is preserved
         double aspect_ratio = 1;//16.0 / 9.0; // widht / height
         int image_width = 100;
+        // Count of random samples to be generated per pixel for anti-aliasing effect.
+        int samples_per_pixel = 10;
+
         /* Camera Parameters */
         void render(const hittable& world) {
             initialize();
@@ -36,19 +39,17 @@ class camera {
                 // to the stderr handle
                 std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
                 for (int i = 0; i < image_width; i++) {
-                    // Compute the pixel center of the current pixel. This is the done by moving
-                    // the 2
-                    // viewport deltas by the amount of the current image reion.
-                    auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-                    // Compute the ray direction going from the camera to the pixel.
-                    auto ray_direction = pixel_center - center;
-                    // Initialize the ray
-                    ray r(center, ray_direction);
-
-                    // Contruct the color for the pixel in the surface world;
-                    color pixel_color = ray_color(r, world);
-
-                    write_color(std::cout, pixel_color);
+                    // Initialize the pixel color
+                    color pixel_color(0,0,0);
+                    // Cast the desired number of rays for each pixel
+                    for (int s = 0; s < samples_per_pixel; s++) {
+                        // Get a new random ray in the pixel's region square
+                        ray r = get_ray(i, j);
+                        // Add that color to our end result
+                        pixel_color += ray_color(r, world);
+                    }
+                    // Write the color, minding the fact that it has to be scaled.
+                    write_color(std::cout, pixel_samples_scale * pixel_color);
                 }
             }
             // Additional whitespaces are to make sure we cover the writing above
@@ -58,6 +59,10 @@ class camera {
     private:
         // Rendered image height
         int image_height;
+        // In the end result, we will still have a single value for coloring that region. We will
+        // get that color value by summing up the results we get from each random ray cast.
+        // As such, we need to scale down each value, based on the number of pixels that we compute
+        double pixel_samples_scale;
         // Camera center
         point3 center;
         // Location of pixel 0,0 (first pixel of the vieport
@@ -72,6 +77,8 @@ class camera {
             // Calculate the image height and make sure that it's at least 1.
             image_height = int(image_width / aspect_ratio);
             image_height = (image_height < 1) ? 1 : image_height;
+
+            pixel_samples_scale = 1.0 / samples_per_pixel;
 
             // Focal length is the distance from the camera to the viewport. This is different from
             // the `z` coordinate of the object that we are viewing.
@@ -161,6 +168,49 @@ class camera {
             // we have more white, and less blue.
             auto c = ((1.0-a) * white + a * light_blue);
             return c;
+        }
+
+        // Construct a camera ray cast from the origin and directed at a randomly sampled point
+        // in the square region that has pixel (i,j) as the center.
+        ray get_ray(int i, int j) const {
+            // Get the random offset
+            auto rand_offset= sample_square();
+
+            // Go to that pixel point in the viewport pixel grid, which is relative to the current
+            // pixel
+            auto rand_pixel = pixel00_loc
+                + ((i + rand_offset.x()) * pixel_delta_u)
+                + ((j + rand_offset.y()) * pixel_delta_v);
+
+            // Specify the ray's origin, which is the camera center
+            auto ray_origin = center;
+            // Ray direction is towards the above random pixel
+            auto ray_direction = rand_pixel - ray_origin;
+
+            // Return the new ray
+            return ray(ray_origin, ray_direction);
+        }
+
+        // Function that samples a point within the region of a pixel's square. Given a grid
+        // of squares, every 2 pixels are separated by a 1.0 distance. The entire grid is also
+        // spaced out from the viewport edge by an 0.5 distance.
+        // This means that around each pixel, there is a square surface and the orthogonal distance
+        // from the pixel itself to each of the hypothetical square's edge is 0.5.
+        // In the viewport below, we considered each vertical bar = 2 horizontal dashes, so it
+        // makes sens to the eye.
+        // +-----+-----------------+
+        // |  |  |  |  |  |  |  |  |
+        // |--p--|--p--|--p--|--p--|
+        // |  |  |  |  |  |  |  |  |
+        // |--+--+--+--+--+--+--+--+
+        // |  |  |  |  |  |  |  |  |
+        // |--p--+--p--+--p--+--p--|
+        // |  |  |  |  |  |  |  |  |
+        // +-----------------------+
+        vec3 sample_square() const {
+            // Return a vector sampled in an unit square, ignoring the z coordinate, which is
+            // non-existent in a 2D plane
+            return vec3(random_double() - 0.5, random_double() - 0.5, 0);
         }
 };
 

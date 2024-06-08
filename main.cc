@@ -20,6 +20,8 @@ int main() {
     cam.aspect_ratio = 16.0 / 9.0;
     // Change image's width. This will automatically also change the images height as well.
     cam.image_width = 400;
+    // Set the number of ray samples we want to cast for each pixel to do anti-aliasing
+    cam.samples_per_pixel = 100;
 
     cam.render(world);
 }
