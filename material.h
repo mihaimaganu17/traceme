@@ -66,7 +66,7 @@ class lambertian: public material {
 // Implements `material` class for a metal material
 class metal: public material {
     public:
-        metal(const color& albedo): albedo(albedo) {}
+        metal(const color& albedo, double fuzz): albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
         // r_in -> ray we casted
         // hit -> point where the ray hit the surface (in our case this material)
@@ -76,16 +76,30 @@ class metal: public material {
         const override {
             // Compute the reflected vector
             vec3 reflected = reflect(r_in.direction(), hit.normal);
+            // Normalize the reflected ray
+            vec3 reflected_unit = unit_vector(reflected);
+            // Create a new fuzz vector for the unit sphere
+            vec3 fuzz_vec = fuzz * random_unit_vector();
+            // Assign a new vector (vector addition), where we should fuzz the ray
+            reflected = reflected_unit + fuzz_vec;
             // Construct a ray using it and the hit point of the previous ray
             scattered = ray(hit.p, reflected);
             // Assign our desired attenuation
             attenuation = albedo;
 
-            return true;
+            // If the length of the vector is negative, we are scaterring below the surface, and 
+            // we just absord that
+            return (dot(scattered.direction(), hit.normal) > 0);
         }
     private:
         // See description in `material.h:lambertian` class under the same name
         color albedo;
+        // The fuzz parameters is the radius of the fuzz sphere that we use to fuzz reflections.
+        // When a ray is reflected, we consider the end point of that vector, the center of the
+        // fuzz sphere. The `fuzz` parameter below is the radius of that sphere. Using these 2
+        // informations, we chose another point on the sphere to the vector to end, such that
+        // the reflection is now fuzzed.
+        double fuzz;
 };
 
 #endif
