@@ -7,9 +7,8 @@
 class sphere: public hittable {
     public:
         // Constructor.
-        sphere(const point3& center, double radius) : center(center), radius(fmax(0, radius)) {
-            // TODO: Initialize the material pointer `mat`.
-        }
+        sphere(const point3& center, double radius, shared_ptr<material> mat) :
+            center(center), radius(fmax(0, radius)), mat(mat) {}
 
         bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const override {
             // We need to solve a*x^2 + b*x + c = 0

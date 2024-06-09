@@ -19,7 +19,7 @@ class material {
         ) const {
             return false;
         }
-}
+};
 
 // Modeling light Scatter and Reflectance
 
@@ -61,6 +61,31 @@ class lambertian: public material {
         // in essence is the ray that is reflected off of the surface, given the ray incidence, the
         // color and the material of the surface.
         color albedo;
-}
+};
+
+// Implements `material` class for a metal material
+class metal: public material {
+    public:
+        metal(const color& albedo): albedo(albedo) {}
+
+        // r_in -> ray we casted
+        // hit -> point where the ray hit the surface (in our case this material)
+        // attenuation -> factor returning how much we should reflect
+        // scattered -> the reflected, scattered ray from the hit point
+        bool scatter(const ray& r_in, const hit_record& hit, color& attenuation, ray& scattered)
+        const override {
+            // Compute the reflected vector
+            vec3 reflected = reflect(r_in.direction(), hit.normal);
+            // Construct a ray using it and the hit point of the previous ray
+            scattered = ray(hit.p, reflected);
+            // Assign our desired attenuation
+            attenuation = albedo;
+
+            return true;
+        }
+    private:
+        // See description in `material.h:lambertian` class under the same name
+        color albedo;
+};
 
 #endif

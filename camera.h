@@ -4,6 +4,7 @@
 #include "traceme.h"
 #include "hittable.h"
 #include "hittable_list.h"
+#include "material.h"
 
 /*
  * The camera class is responsible for 2 impoartan jobs
@@ -166,23 +167,39 @@ class camera {
             // not always be on the surface. If it is below the surface, there is a high change
             // that it will intersect that surface again
             if (world.hit(r, interval(0.001, infinity), hit) == true) {
+                // Prepare parameters for a reflected ray from the surface that is goind to be hit
+                // by our ray casts
+                ray scattered;
+                color attenuation;
+
+                // If we hit and reflect
+                if (hit.mat->scatter(r, hit, attenuation, scattered)) {
+                    // We cast the reflected ray recursively
+                    return attenuation * ray_color(scattered, depth - 1, world);
+                }
+                // Otherwise, we just return black
+                return color(0, 0, 0);
+
+                // Rest of these comments apply when we do not have materials
+                /* 
                 // We get a random new reflection direction, using rejection method.
                 // vec3 reflect_direction = random_on_hemisphere(hit.normal);
                 // Create a ray relfection direction from the Lambertian distribution. This can
                 // be easily understood with the vector addition triangle rule and the explanation
                 // from 9.4 True Lambertian Reflection from:
                 // https://raytracing.github.io/books/RayTracingInOneWeekend.html#overview
-                vec3 reflect_direction = hit.normal + random_unit_vector();
+                //vec3 reflect_direction = hit.normal + random_unit_vector();
                 // Now we map each component to interval from 0 to 1 and at the same time, we map
                 // it to (r,
                 // g, b). We add plus 1 to ensure that we cover the entire [0, 1] interval
                 // As a first demo of our new diffuse materail we'll set the ray_color function to
                 // return 50% of the color from a bounce.
                 // We construct a new ray that reflects back with the above direction
-                ray reflect_ray(hit.p, reflect_direction);
+                //ray reflect_ray(hit.p, reflect_direction);
                 // Now we recursively reflect that in the world
-                return 0.5 * ray_color(reflect_ray, depth - 1, world);
+                //return 0.5 * ray_color(reflect_ray, depth - 1, world);
                 // Alternatively, we can write hit.normal + color(1,1,1)
+                */
             }
             // Get the unit vector from out ray.
             vec3 unit_direction = unit_vector(r.direction());

@@ -4,14 +4,36 @@
 #include "sphere.h"
 #include "hittable.h"
 #include "hittable_list.h"
+#include "material.h"
 
 
 int main() {
     // World / Scene configuration
     hittable_list world;
 
-    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
-    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
+    //world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    //world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
+
+    // We define some material
+    auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
+    auto material_center = make_shared<lambertian>(color(0.1, 0.2, 0.5));
+    auto material_left = make_shared<metal>(color(0.8, 0.8, 0.8));
+    auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2));
+
+    // We create a bunch of spheres
+    auto ground_sphere = make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground);
+    // Center sphere that is slightly closer to the camera
+    auto center_sphere = make_shared<sphere>(point3(0.0, 0.0, -1.2), 0.5, material_center);
+    // A sphere we put to the left
+    auto left_sphere = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left);
+    // A sphere we put to the right
+    auto right_sphere = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right);
+
+    world.add(ground_sphere);
+    world.add(center_sphere);
+    world.add(left_sphere);
+    world.add(right_sphere);
+
 
     // Set up the camera through which we view the world
     camera cam;

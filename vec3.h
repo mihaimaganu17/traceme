@@ -169,7 +169,7 @@ inline vec3 random_in_unit_sphere() {
         // (x - sx)^2 + (y - sy)^2 + (z - sz)^2 < r^2
         // In our case, the unit sphere center point is (0, 0, 0), so it becomes
         // x^2 + y^2 + z^2 < r^2. Which is essentially the dot product of p with p < 1
-        if (p.length_squared() < 1) {
+        if (p.length_squared() < 1.0) {
             return p;
         }
     }
@@ -187,12 +187,34 @@ inline vec3 random_unit_vector() {
 inline vec3 random_on_hemisphere(const vec3& normal) {
     auto random_reflect_ray = random_unit_vector();
 
-    if (dot(normal, random_reflect_ray) > 0.0) {
+    if (dot(random_reflect_ray, normal) > 0.0) {
         return random_reflect_ray;
     } else {
         // invert the vector so we are on the same side as the normal
         return -random_reflect_ray;
     }
+}
+
+/*
+// Computes the reflection vector for a metal surface.
+// TODO: The parameters of this function can easily be interchanged, which will cause major havoc
+// in the ray business.
+inline vec3 reflect(const vec3& v, const vec3& normal) {
+    // First we find the length of the vector, using the dot product
+    double refl_length = dot(v, normal);
+    // Then, we need tranform this lenght in a vector
+    vec3 b_vec_towards_ray = refl_length * normal;
+    // Now, we want to go out in the opposite direction, so we negate the vector to inverse it. We
+    // also need to double the vector to compute its extension out of the surface and not just from
+    // inside until it hits the surface.
+    auto b_vec_reflect = v -2 * b_vec_towards_ray;
+    // Vec addition rule
+    return b_vec_reflect;
+}
+*/
+
+inline vec3 reflect(const vec3& v, const vec3& n) {
+    return v - 2*dot(v,n)*n;
 }
 
 #endif
