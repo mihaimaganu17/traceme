@@ -211,11 +211,21 @@ inline vec3 reflect(const vec3& v, const vec3& normal) {
     return b_vec_reflect;
 }
 
-inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
-    auto cos_theta = fmin(dot(-uv, n), 1.0);
-    vec3 r_out_perp =  etai_over_etat * (uv + cos_theta*n);
-    vec3 r_out_parallel = -sqrt(fabs(1.0 - r_out_perp.length_squared())) * n;
-    return r_out_perp + r_out_parallel;
+inline vec3 refract(const vec3& ray_in, const vec3& n, double etai_over_etat) {
+    // Cosinus of the incidence angle of the ray hitting the surface. We want to take a minimum
+    // angle of 1
+    auto cos_theta_original_ray_cast = fmin(dot(-ray_in, normal), 1.0);
+
+    // The refracted ray can be decomposed as a sum of its two components:
+    // - The perpendicular component
+    // - The parallel component
+
+    // Compute the perpendicular component
+    vec3 refract_ray_out_perp =  etai_over_etat * (ray_in + cos_theta * normal);
+    // Compute the paralel component
+    vec3 refract_ray_out_parallel =
+        -sqrt(fabs(1.0 - refract_ray_out_parallel.length_squared())) * normal;
+    return refract_ray_out_perp + refract_ray_out_parallel;
 }
 
 #endif

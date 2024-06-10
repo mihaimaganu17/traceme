@@ -108,9 +108,12 @@ class dielectric : public material {
 
         bool scatter(const ray& r_in, const hit_record& hit, color& attenuation, ray& scattered)
         const override {
-            // We make refraction, refract the exact same color of light
+            // We make refraction, by refracting the exact same color of light
             attenuation = color(1.0, 1.0, 1.0);
-            // If we hit the front of the surface, we raise to -1
+
+            // Air has a refraction index of ~ 1.0, and we have to compute the overall n1/n2, where:
+            // - n1 is the refraction index of the medium from which the incident ray is coming
+            // - n2 is the refraction index of the medium into which the refracted ray exists
             double ri = hit.front_face ? (1.0/refraction_index) : refraction_index;
 
             // Compute the unit vector of the incomming ray
