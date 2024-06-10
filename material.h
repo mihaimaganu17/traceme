@@ -118,11 +118,26 @@ class dielectric : public material {
 
             // Compute the unit vector of the incomming ray
             vec3 unit_direction = unit_vector(r_in.direction());
-            // Compute the refraction
-            vec3 refracted = refract(unit_direction, hit.normal, ri);
+
+            // Compute the incidence of the incoming ray with the surface normal
+            double cos_theta_ray_in = fmin(dot(-unit_direction, hit.normal), 1.0);
+            // Compute the sinus of the angle, given the cosinus above
+            double sin_theta_ray_in = sqrt(1.0 - cos_theta_ray_in * cos_theta_ray_in);
+
+            vec3 direction;
+            // We are essentially trying to satisfy sin(theta_refracted) = n1/n2 * sin(theta)
+            // sin cannot be larger than 1, so, whenever n1 > n2, there is a high chance the
+            // equality will not hold.
+            if ((ri * sin_theta_ray_in) > 1.0 ) {
+                // We must reflect the ray
+                direction = reflect(unit_direction, hit.normal);
+            } else {
+                // We can refract the ray
+                direction = refract(unit_direction, hit.normal, ri);
+            }
 
             // Scatter the refracted ray
-            scattered = ray(hit.p, refracted);
+            scattered = ray(hit.p, direction);
 
             return true;
         }
