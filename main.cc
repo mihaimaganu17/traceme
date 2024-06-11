@@ -71,6 +71,83 @@ void defocus_my_cam(camera& cam) {
     cam.focus_dist = 3.4;
 }
 
+void random_sphere_cover(hittable_list& world, camera& cam) {
+    auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+    auto ground_sphere = make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material);
+
+    // Add it to the world
+    world.add(ground_sphere);
+
+    // Generate a bunch of random spheres, use `a` as `x` coordinate base and `b` as `z` coordinate
+    // base
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
+            // Stored the likelihood of choosing different materials and and reflection and
+            // refraction properties
+            auto choose_mat = random_double();
+
+            point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+
+            // Only generate the surfaces if we go beyond this random point
+            if ((center - point3(4, 0.2, 0)).length() > 0.9) {
+                shared_ptr<material> sphere_material;
+
+                if (choose_mat < 0.8) {
+                    // Diffuse, most likely to be chosen
+                    auto albedo = color::random() * color::random();
+                    sphere_material = make_shared<lambertian>(albedo);
+                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
+                } else if (choose_mat < 0.95) {
+                    // metal, less likely
+                    auto albedo = color::random(0.5, 1);
+                    // How much we reflect
+                    auto fuzz = random_double(0, 0.5);
+                    sphere_material = make_shared<metal>(albedo, fuzz);
+                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
+                } else {
+                    // Glass, very less likely since is computationally  expensive
+                    sphere_material = make_shared<dielectric>(1.5);
+                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
+                }
+            }
+        }
+    }
+
+    // Add some big spheres
+
+    // Center sphere
+    auto material1 = make_shared<dielectric>(1.5);
+    world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
+
+    // Left sphere
+    auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
+    world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
+
+    // Right sphere
+    auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+
+    // Setup camera
+    // Change the aspect ratio to something more popular
+    cam.aspect_ratio = 16.0 / 9.0;
+    // Change image's width. This will automatically also change the images height as well.
+    cam.image_width = 1200;
+    // Set the number of ray samples we want to cast for each pixel to do anti-aliasing
+    cam.samples_per_pixel = 500;
+    // Set the number of times we want the casted rays to reflect on surfaces of the world
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+
+    // Move camera to the right, a bit upwards and a bit backwards
+    cam.lookfrom = point3(13, 2, 3);
+    cam.lookat = point3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
+}
+
 int main() {
     // World / Scene configuration
     hittable_list world;
@@ -91,8 +168,9 @@ int main() {
 
     cam.vfov = 90;
 
-    twist_my_cam(cam);
-    defocus_my_cam(cam);
+    //twist_my_cam(cam);
+    //defocus_my_cam(cam);
+    random_sphere_cover(world, cam);
 
     cam.render(world);
 }
