@@ -229,4 +229,18 @@ inline vec3 refract(const vec3& unit_ray_in, const vec3& normal, double etai_ove
     return refract_ray_out_perp + refract_ray_out_parallel;
 }
 
+// Helper function to choose random points on the camera's defocus disk, which acts similar to a
+// real world physical camera's lens.
+inline vec3 random_in_unit_disk() {
+    while(true) {
+        // Define a circle, z is 0, so it is a 3D shape
+        auto p = vec3(random_double(-1, 1), random_double(-1, 1), 0);
+
+        // If p is inside the circle, return it
+        if (p.length_squared() < 1) {
+            return p;
+        }
+    }
+}
+
 #endif

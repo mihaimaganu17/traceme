@@ -66,6 +66,11 @@ void twist_my_cam(camera& cam) {
     cam.vfov = 20;
 }
 
+void defocus_my_cam(camera& cam) {
+    cam.defocus_angle = 10.0;
+    cam.focus_dist = 3.4;
+}
+
 int main() {
     // World / Scene configuration
     hittable_list world;
@@ -87,6 +92,7 @@ int main() {
     cam.vfov = 90;
 
     twist_my_cam(cam);
+    defocus_my_cam(cam);
 
     cam.render(world);
 }

@@ -36,6 +36,19 @@ class camera {
         // Camera-relative "up" direction or the `y` dependent coordinate
         point3 vup = point3(0, 1, 0);
 
+        // Defocus blur parameters.
+        // In order to accomplish defocus blue, we construct a disk centered at the camera center.
+        // Larger radius = greater defocus blur.
+        // The original camera we had, had a defocus disk of radius zero (no blur at all), as such
+        // all the rays originated at the disk center (lookfrom).
+        // Angle of the cone with apex at viewport center and base (defocus disk) as the camera
+        // center.
+        // Angle of the cone with apex at viewport center and base (defocus disk) as the camera
+        // center.
+        double defocus_angle = 0;
+        // Distance from the camera lookfrom point to plane of perfect focus
+        double focus_dist = 10;
+
         /* Camera Parameters */
         void render(const hittable& world) {
             initialize();
@@ -94,6 +107,11 @@ class camera {
         // w -> reversed of focal length
         vec3 u, v, w;
 
+        // Defocus disk horizontal radius
+        vec3 defocus_disk_u;
+        // Defocus disk vertical radius
+        vec3 defocus_disk_v;
+
         // Configures the camera for rendering
         void initialize() {
             // Calculate the image height and make sure that it's at least 1.
@@ -104,7 +122,10 @@ class camera {
 
             // Focal length is the distance from the camera to the viewport. This is different from
             // the `z` coordinate of the object that we are viewing.
-            auto focal_length = (lookfrom - lookat).length();
+            //
+            // When using a focus disk, we no longer need focal length
+            //
+            // auto focal_length = (lookfrom - lookat).length();
             // Set the camera origin.
             // In this coordinate sceme: Y points up, x points to the right and z point straight to
             // the viewport, orthogonally
@@ -123,7 +144,7 @@ class camera {
             // rendered image.
             // The distance between 2 adjacent pixels is called the pixel spacing and square pixels
             // is the standard.
-            auto viewport_height = 2.0 * h * focal_length;
+            auto viewport_height = 2.0 * h * focus_dist;
             // Viewport widths less than one are ok since they are real valued.
             auto viewport_width = viewport_height * (double(image_width) / image_height);
 
@@ -159,11 +180,18 @@ class camera {
             // distance.
             // In the schema, this is Q of P(t) = Q + t * d
             auto viewport_upper_left = center
-                - (focal_length * w) - viewport_u/2 - viewport_v/2;
+                - (focus_dist * w) - viewport_u/2 - viewport_v/2;
             // The pixel grid is inset by the viewport edges by half-pixel, such that each pixel
             // has the same space region around it. That is why, in order to find the first pixel,
             // we have to move by half pixel from the viewports upper left region (Q).
             pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+            // Calculate the camera defocus disk basis vectors
+            // Not sure about this formula
+            // https://en.wikipedia.org/wiki/Circle_of_confusion
+            auto defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle / 2));
+            defocus_disk_u = u * defocus_radius;
+            defocus_disk_v = v * defocus_radius;
         }
 
         // Returns the color for a given scene ray.
@@ -254,6 +282,8 @@ class camera {
         // Construct a camera ray cast from the origin and directed at a randomly sampled point
         // in the square region that has pixel (i,j) as the center.
         ray get_ray(int i, int j) const {
+            // Construct a camera ray originating from the defocus disk and directed at a randomly
+            // samples point around the pixel location i, j.
             // Get the random offset
             auto rand_offset= sample_square();
 
@@ -264,7 +294,10 @@ class camera {
                 + ((j + rand_offset.y()) * pixel_delta_v);
 
             // Specify the ray's origin, which is the camera center
-            auto ray_origin = center;
+            //auto ray_origin = center;
+            // However we are now using a focus disk, so we choose a random point from the focus
+            // disk to be the origin of the ray.
+            auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
             // Ray direction is towards the above random pixel
             auto ray_direction = rand_pixel - ray_origin;
 
@@ -292,6 +325,16 @@ class camera {
             // Return a vector sampled in an unit square, ignoring the z coordinate, which is
             // non-existent in a 2D plane
             return vec3(random_double() - 0.5, random_double() - 0.5, 0);
+        }
+
+        // Returns a random point in the camera defocus disk.
+        point3 defocus_disk_sample() const {
+            // Get a random unit disk point
+            auto p = random_in_unit_disk();
+
+            // Get the pixel on the disk for that point. 3 simple rule here. One unit in the unit
+            // disk corresponds to the entire disk length.
+            return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
         }
 };
 
