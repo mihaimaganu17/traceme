@@ -125,10 +125,11 @@ class dielectric : public material {
             double sin_theta_ray_in = sqrt(1.0 - cos_theta_ray_in * cos_theta_ray_in);
 
             vec3 direction;
+
             // We are essentially trying to satisfy sin(theta_refracted) = n1/n2 * sin(theta)
             // sin cannot be larger than 1, so, whenever n1 > n2, there is a high chance the
             // equality will not hold.
-            if ((ri * sin_theta_ray_in) > 1.0 ) {
+            if ((ri * sin_theta_ray_in) > 1.0 || reflectance(cos_theta_ray_in, ri) > random_double()) {
                 // We must reflect the ray
                 direction = reflect(unit_direction, hit.normal);
             } else {
@@ -143,7 +144,17 @@ class dielectric : public material {
         }
 
     private:
+        // Refractiove index in vacuum or air, or the ratio of the material's refractive index
+        // overt the refractive index of the enclosing media (e.g. crystal ball in a glass of water)
         double refraction_index;
+
+        // Use Schlick's approximation to compute the reflection coefficient.
+        // R(theta) = R0 + (1 - R0)*(1-cos(theta)^5)
+        // where R0 is the refraction index
+        static double reflectance(double cos_theta, double r0) {
+            auto r_theta = r0 + (1 - r0) * (1 - pow(cos_theta, 5));
+            return r_theta;
+        }
 };
 
 #endif
