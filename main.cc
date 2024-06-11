@@ -7,10 +7,7 @@
 #include "material.h"
 
 
-int main() {
-    // World / Scene configuration
-    hittable_list world;
-
+void world_with_spheres(hittable_list& world) {
     //world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
     //world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
@@ -49,7 +46,24 @@ int main() {
     world.add(inner_left_sphere);
     world.add(outer_left_sphere);
     world.add(right_sphere);
+}
 
+void world_with_fov(hittable_list& world) {
+    // radius of the spheres
+    auto R = cos(pi / 4);
+
+    auto material_left = make_shared<lambertian>(color(0, 0, 1));
+    auto material_right = make_shared<lambertian>(color(1, 0, 0));
+
+    world.add(make_shared<sphere>(point3(-R, 0, -1), R, material_left));
+    world.add(make_shared<sphere>(point3(R, 0, -1), R, material_right));
+}
+
+int main() {
+    // World / Scene configuration
+    hittable_list world;
+
+    world_with_fov(world);
 
     // Set up the camera through which we view the world
     camera cam;
@@ -62,6 +76,8 @@ int main() {
     cam.samples_per_pixel = 100;
     // Set the number of times we want the casted rays to reflect on surfaces of the world
     cam.max_depth = 50;
+
+    cam.vfov = 90;
 
     cam.render(world);
 }

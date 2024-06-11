@@ -23,6 +23,10 @@ class camera {
         // do not blow the stack
         unsigned int max_depth = 10;
 
+        // Vertical view angle (field of view). The angle we make while moving the camera up and
+        // down
+        double vfov = 90;
+
         /* Camera Parameters */
         void render(const hittable& world) {
             initialize();
@@ -92,13 +96,20 @@ class camera {
             // the viewport, orthogonally
             center = point3(0,0,0);
 
+            // We compute the viewports height based on the angle of the camera
+            auto theta = degrees_to_radians(vfov);
+            // Compute the tangent
+            auto h = tan(theta / 2);
+            // Calculate the viewports height
+
+
             // The viewport is a virtual rectangle in the 3D world that contains the grid of image
             // pixel locations. If pixels are spaced the same distance horizontally as they are
             // vertically, the viewport that bounds them will have the same aspect ratio as the
             // rendered image.
             // The distance between 2 adjacent pixels is called the pixel spacing and square pixels
             // is the standard.
-            auto viewport_height = 2.0;
+            auto viewport_height = 2.0 * h * focal_length;
             // Viewport widths less than one are ok since they are real valued.
             auto viewport_width = viewport_height * (double(image_width) / image_height);
 

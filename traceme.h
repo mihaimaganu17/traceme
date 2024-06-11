@@ -19,6 +19,11 @@ const double pi = 3.1415926535897932385;
 // Utility Functions
 
 // Converts an angle from degress to radians
+// Degrees are defined using an arbitrary separation of a turn into 360 parts. This is essentially
+// a theoretical expression of angles.
+// Meanwhile, radians are a naturla unit which is directly related to the geometry of a circle.
+// Pi is the ratio between a circle circumference and its diameter.
+// Pi = C / d and it is more often aproximated to 3.14
 inline double degrees_to_radians(double degrees) {
     return degrees * pi / 180.0;
 }
