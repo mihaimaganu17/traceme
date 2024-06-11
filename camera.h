@@ -23,16 +23,25 @@ class camera {
         // do not blow the stack
         unsigned int max_depth = 10;
 
-        // Vertical view angle (field of view). The angle we make while moving the camera up and
-        // down
+        // Vertical view angle (field of view). This is the visual angle from edge to edge of the
+        // rendered image. Since our image is not square, the fov is different horizontally and
+        // vertically.
         double vfov = 90;
+
+        // The point from which camera / eyes are looking
+        point3 lookfrom = point3(0, 0, 0);
+        // The point to which camera is looking at. It is essentially the same point which has `z`,
+        // the last coordinate as the focal length
+        point3 lookat = point3(0, 0, -1);
+        // Camera-relative "up" direction or the `y` dependent coordinate
+        point3 vup = point3(0, 1, 0);
 
         /* Camera Parameters */
         void render(const hittable& world) {
             initialize();
             // Rendering
 
-            // Write the header: Magic Width Height and on the next line we have the maximu value
+            // Write the header: Magic Width Height and on the next line we have the maximum value
             // for each
             // color: 255
             // P3
@@ -79,6 +88,11 @@ class camera {
         vec3 pixel_delta_u;
         // Offset to pixel below
         vec3 pixel_delta_v;
+        // Camera-frame basis vectors.
+        // u -> to the right
+        // v -> up
+        // w -> reversed of focal length
+        vec3 u, v, w;
 
         // Configures the camera for rendering
         void initialize() {
@@ -90,11 +104,11 @@ class camera {
 
             // Focal length is the distance from the camera to the viewport. This is different from
             // the `z` coordinate of the object that we are viewing.
-            auto focal_length = 1.0;
+            auto focal_length = (lookfrom - lookat).length();
             // Set the camera origin.
             // In this coordinate sceme: Y points up, x points to the right and z point straight to
             // the viewport, orthogonally
-            center = point3(0,0,0);
+            center = lookfrom;
 
             // We compute the viewports height based on the angle of the camera
             auto theta = degrees_to_radians(vfov);
@@ -113,16 +127,23 @@ class camera {
             // Viewport widths less than one are ok since they are real valued.
             auto viewport_width = viewport_height * (double(image_width) / image_height);
 
+            // Compute the u, v, w unit basis for the camera coordinate frame
+            w = unit_vector(lookfrom - lookat);
+            u = unit_vector(cross(vup, w));
+            // `u` and `v` are already unit vectors so we do not have to convert them. Theoretically
+            // this should be -w x u, but we just inversed the terms
+            v = cross(u, w);
+
             // We define 2 vectors to navigate the pixel grid of the viewport.
             // Horizontal navigation - left to right. Since X points to the right, the vector length
             // will be the X coordinate maximum.
-            auto viewport_u = vec3(viewport_width, 0, 0);
+            auto viewport_u = u * viewport_width;
             // Vertical navigation - top to bottom. Since Y points up, we set it to the maximum
             // value.
             // Since our Y coordinate for the image increases as we go render downwards, the
             // viewports Y decreases, since the coordinate system of the camera has Y pointing up.
             // This means the 2 Ys are inverted.
-            auto viewport_v = vec3(0, -viewport_height, 0);
+            auto viewport_v = v * viewport_height;
 
             // We will define the distance from pixel to pixel (of the viewport) as a delta, which
             // has to be computed for both horizontal and vertical directions.
@@ -138,7 +159,7 @@ class camera {
             // distance.
             // In the schema, this is Q of P(t) = Q + t * d
             auto viewport_upper_left = center
-                - vec3(0,0,focal_length) - viewport_u/2 - viewport_v/2;
+                - (focal_length * w) - viewport_u/2 - viewport_v/2;
             // The pixel grid is inset by the viewport edges by half-pixel, such that each pixel
             // has the same space region around it. That is why, in order to find the first pixel,
             // we have to move by half pixel from the viewports upper left region (Q).

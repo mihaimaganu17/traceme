@@ -59,11 +59,18 @@ void world_with_fov(hittable_list& world) {
     world.add(make_shared<sphere>(point3(R, 0, -1), R, material_right));
 }
 
+void twist_my_cam(camera& cam) {
+    cam.lookfrom = point3(-2, 2, 1);
+    cam.lookat = point3(0, 0, -1);
+    cam.vup = vec3(0, 1, 0);
+    cam.vfov = 20;
+}
+
 int main() {
     // World / Scene configuration
     hittable_list world;
 
-    world_with_fov(world);
+    world_with_spheres(world);
 
     // Set up the camera through which we view the world
     camera cam;
@@ -78,6 +85,8 @@ int main() {
     cam.max_depth = 50;
 
     cam.vfov = 90;
+
+    twist_my_cam(cam);
 
     cam.render(world);
 }
