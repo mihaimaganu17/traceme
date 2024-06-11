@@ -150,9 +150,12 @@ class dielectric : public material {
 
         // Use Schlick's approximation to compute the reflection coefficient.
         // R(theta) = R0 + (1 - R0)*(1-cos(theta)^5)
-        // where R0 is the refraction index
-        static double reflectance(double cos_theta, double r0) {
-            auto r_theta = r0 + (1 - r0) * (1 - pow(cos_theta, 5));
+        // R0 = ((n1 - n2) / (n1 + n2)) ^ 2
+        // We always consider the ray coming from an air medium and such n1 = 1
+        static double reflectance(double cos_theta, double refraction_index) {
+            auto r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+            r0 = r0*r0;
+            auto r_theta = r0 + (1 - r0) * (pow((1 - cos_theta), 5));
             return r_theta;
         }
 };

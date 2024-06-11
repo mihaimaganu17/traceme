@@ -20,21 +20,34 @@ int main() {
     //auto material_left = make_shared<metal>(color(0.8, 0.8, 0.8), 0.3);
     //auto material_left = make_shared<dielectric>(1.50);
     // Air divided by water refractive index
-    auto material_left = make_shared<dielectric>(1.00 / 1.33);
+    //auto material_left = make_shared<dielectric>(1.00 / 1.33);
+    // We want to have a sphere inside another sphere.
+    // The outer sphere is a standard glass sphere with a refractive index of around 1.5.
+    auto material_outer_sphere = make_shared<dielectric>(1.50);
+    // The inner sphere's refractive index should be relative to the material of the surrounding
+    // outer sphere, thus modeling a transition from glass into the inner air.
+    // This translates / can be specified as the ratio of the refractive index of the
+    // (contained) object divided by the refractive index of the enclosing medium (outer object).
+    // The inner sphere would have a refractive index of air (the inner sphere material) over the
+    // index of refraction of glass (1.0 / 1.5)
+    auto material_inner_sphere = make_shared<dielectric>(1.0 / 1.5);
     auto material_right = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
 
     // We create a bunch of spheres
     auto ground_sphere = make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground);
     // Center sphere that is slightly closer to the camera
     auto center_sphere = make_shared<sphere>(point3(0.0, 0.0, -1.2), 0.5, material_center);
-    // A sphere we put to the left
-    auto left_sphere = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left);
+    // A sphere we put to the left, which will contain another sphere
+    auto outer_left_sphere = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_outer_sphere);
+    // A sphere inside our left sphere
+    auto inner_left_sphere = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.4, material_inner_sphere);
     // A sphere we put to the right
     auto right_sphere = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right);
 
     world.add(ground_sphere);
     world.add(center_sphere);
-    world.add(left_sphere);
+    world.add(inner_left_sphere);
+    world.add(outer_left_sphere);
     world.add(right_sphere);
 
 
