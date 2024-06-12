@@ -300,9 +300,11 @@ class camera {
             auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
             // Ray direction is towards the above random pixel
             auto ray_direction = rand_pixel - ray_origin;
+            // Time when the ray has been casted
+            auto ray_time = random_double();
 
             // Return the new ray
-            return ray(ray_origin, ray_direction);
+            return ray(ray_origin, ray_direction, ray_time);
         }
 
         // Function that samples a point within the region of a pixel's square. Given a grid

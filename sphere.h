@@ -6,11 +6,22 @@
 
 class sphere: public hittable {
     public:
-        // Constructor.
+        // Constructor for a Stationary Sphere
         sphere(const point3& center, double radius, shared_ptr<material> mat) :
-            center(center), radius(fmax(0, radius)), mat(mat) {}
+            center1(center), radius(fmax(0, radius)), mat(mat) {}
+
+        // Constructor for a Moving Sphere
+        sphere(const point3& center1, const point3& center2, double radius,
+                shared_ptr<material> mat)
+            : center1(center1), radius(fmax(0, radius)), mat(mat), is_moving(true)
+        {
+            // Compute the vector along which the sphere moves from center1 to center2
+            center_vec = center2 - center1;
+        }
 
         bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const override {
+            // Updat the center based on the moving ball
+            point3 center = is_moving ? sphere_center(r.time()) : center1;
             // We need to solve a*x^2 + b*x + c = 0
             // Vector between the center of the sphere and the origin of the ray cast
             auto ray_to_sphere_center = center - r.origin();
@@ -60,8 +71,22 @@ class sphere: public hittable {
         }
 
     private:
-        point3 center;
+        // In the case of a moving sphere, we want to move it from center1 at time=0 to center2
+        // at time = 1. The sphere continues moving indefinitely outside that time interval, so it
+        // really can be sampled at any time.
+        point3 center1;
         double radius;
         shared_ptr<material> mat;
+        // Vector along which the sphere moves from the original point `center1`
+        vec3 center_vec;
+        // Flag of a moving sphere
+        bool is_moving;
+
+        // Returns the moving sphere's center at the desired `time`
+        point3 sphere_center(double time) const {
+            // Linearly interpolate from center1 to center2 according to time, where t=0 yields
+            // center1, and t=1 yield center2.
+            return center1 + time * center_vec;
+        }
 };
 #endif

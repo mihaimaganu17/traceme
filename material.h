@@ -47,7 +47,7 @@ class lambertian: public material {
                 scatter_direction = rec.normal;
             }
             // Construct the ray that gets scattered (reflected)
-            scattered = ray(rec.p, scatter_direction);
+            scattered = ray(rec.p, scatter_direction, r_in.time());
             // Communicate our attenuation (albedo) or the fractional reflectance
             // Another option would be to scatter with a certain probability `p` and then we would
             // have the `attenuation = albedo / p`
@@ -83,7 +83,7 @@ class metal: public material {
             // Assign a new vector (vector addition), where we should fuzz the ray
             reflected = reflected_unit + fuzz_vec;
             // Construct a ray using it and the hit point of the previous ray
-            scattered = ray(hit.p, reflected);
+            scattered = ray(hit.p, reflected, r_in.time());
             // Assign our desired attenuation
             attenuation = albedo;
 
@@ -138,7 +138,7 @@ class dielectric : public material {
             }
 
             // Scatter the refracted ray
-            scattered = ray(hit.p, direction);
+            scattered = ray(hit.p, direction, r_in.time());
 
             return true;
         }

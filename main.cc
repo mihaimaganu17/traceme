@@ -96,7 +96,11 @@ void random_sphere_cover(hittable_list& world, camera& cam) {
                     // Diffuse, most likely to be chosen
                     auto albedo = color::random() * color::random();
                     sphere_material = make_shared<lambertian>(albedo);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
+
+                    // Define a new center for the spheres to move to
+                    auto center2 = center + vec3(0, random_double(0, .5), 0);
+                    // Define a moving sphere
+                    world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
                 } else if (choose_mat < 0.95) {
                     // metal, less likely
                     auto albedo = color::random(0.5, 1);
@@ -131,9 +135,9 @@ void random_sphere_cover(hittable_list& world, camera& cam) {
     // Change the aspect ratio to something more popular
     cam.aspect_ratio = 16.0 / 9.0;
     // Change image's width. This will automatically also change the images height as well.
-    cam.image_width = 1200;
+    cam.image_width = 400;
     // Set the number of ray samples we want to cast for each pixel to do anti-aliasing
-    cam.samples_per_pixel = 500;
+    cam.samples_per_pixel = 100;
     // Set the number of times we want the casted rays to reflect on surfaces of the world
     cam.max_depth = 50;
 
