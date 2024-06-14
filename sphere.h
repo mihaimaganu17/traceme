@@ -8,13 +8,29 @@ class sphere: public hittable {
     public:
         // Constructor for a Stationary Sphere
         sphere(const point3& center, double radius, shared_ptr<material> mat) :
-            center1(center), radius(fmax(0, radius)), mat(mat) {}
+            center1(center), radius(fmax(0, radius)), mat(mat)
+        {
+            // We define a rectangle as the bounding box (essentially a sphere over the radius)
+            auto rvec = vec3(radius, radius, radius);
+            // We add a bounding box using that rectangle and the spheres center
+            bbox = aabb(center1 - rvec, center1 + rvec);
+        }
+
+        aabb bounding_box() const override { return bbox; }
 
         // Constructor for a Moving Sphere
         sphere(const point3& center1, const point3& center2, double radius,
                 shared_ptr<material> mat)
             : center1(center1), radius(fmax(0, radius)), mat(mat), is_moving(true)
         {
+            // For a moving sphere, we want the bounds of the entire range of motion trough which
+            // the box goes. For this, we want to take the sphere at time t=0 (before movement)
+            // and at time t=1 (after movement) and have a rectangle encapsulating both
+            auto rvec = vec3(radius, radius, radius);
+            aabb bbox1(center1 - rvec, center1 + rvec);
+            aabb bbox2(center2 - rvec, center2 + rvec);
+            // Make a box of the 2
+            bbox = aabb(bbox1, bbox2);
             // Compute the vector along which the sphere moves from center1 to center2
             center_vec = center2 - center1;
         }
@@ -33,8 +49,8 @@ class sphere: public hittable {
             // We need to compute the term for the square root and check it's sign
             double discriminant = h*h - a * c;
 
-            // If the term is negative, we do not have any real solution so the ray never intersect the
-            // sphere
+            // If the term is negative, we do not have any real solution so the ray never intersect
+            // the sphere
             if (discriminant < 0) {
                 return false;
             }
@@ -81,6 +97,8 @@ class sphere: public hittable {
         vec3 center_vec;
         // Flag of a moving sphere
         bool is_moving;
+        // Bounding box for the sphere
+        aabb bbox;
 
         // Returns the moving sphere's center at the desired `time`
         point3 sphere_center(double time) const {

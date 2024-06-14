@@ -3,6 +3,8 @@
 
 #include "ray.h"
 
+#include "aabb.h"
+
 // Tell the compiler this is a class that will be defined later (in material.h). This solves a
 // circular reference issue, where hit_record and material need to keep a reference of each other.
 class material;
@@ -48,5 +50,9 @@ class hittable {
         // A hit computed for a casted ray `r`, which only occurs if the result `t` is in between the
         // given interval `tmin` < t < `tmax`
         virtual bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const = 0;
+
+        // Returns the bounding box of this current surface / 3D object
+        virtual aabb bounding_box() const = 0;
 };
+
 #endif

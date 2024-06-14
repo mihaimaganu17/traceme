@@ -34,9 +34,14 @@ inline double random_double() {
     return rand() / (RAND_MAX + 1.0);
 }
 
-// Generate a random double in the interval given by `min` and `max`
+// Generate a random double in the interval given by [`min`, `max`)
 inline double random_double(double min, double max) {
     return min + (max-min)*random_double();
+}
+
+// Generate a random double in the interval given by [`min', `max`]
+inline unsigned int random_int(unsigned int min, unsigned int max) {
+    return int(random_double(min, max+1));
 }
 
 // Traceme own defined headers

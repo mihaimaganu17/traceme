@@ -5,6 +5,7 @@
 #include "hittable.h"
 #include "hittable_list.h"
 #include "material.h"
+#include "bvh.h"
 
 
 void world_with_spheres(hittable_list& world) {
@@ -40,6 +41,7 @@ void world_with_spheres(hittable_list& world) {
     auto inner_left_sphere = make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.4, material_inner_sphere);
     // A sphere we put to the right
     auto right_sphere = make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right);
+
 
     world.add(ground_sphere);
     world.add(center_sphere);
@@ -86,6 +88,10 @@ void random_sphere_cover(hittable_list& world, camera& cam) {
             // refraction properties
             auto choose_mat = random_double();
 
+            while (choose_mat * 0.9 < 0.2) {
+                choose_mat = random_double();
+            }
+
             point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
 
             // Only generate the surfaces if we go beyond this random point
@@ -130,6 +136,8 @@ void random_sphere_cover(hittable_list& world, camera& cam) {
     // Right sphere
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+
+    world = hittable_list(make_shared<bvh_node>(world));
 
     // Setup camera
     // Change the aspect ratio to something more popular

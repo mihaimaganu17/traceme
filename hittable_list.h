@@ -3,6 +3,7 @@
 
 #include "hittable.h"
 #include "traceme.h"
+#include "aabb.h"
 
 #include <vector>
 
@@ -20,6 +21,9 @@ class hittable_list : public hittable {
         // Adds a new object to the list
         void add(shared_ptr<hittable> object) {
             objects.push_back(object);
+            // Make the new list bounding box from the previous box and the new added object's
+            // bounding box
+            bbox = aabb(bbox, object->bounding_box());
         }
 
         // Clears the list
@@ -53,6 +57,11 @@ class hittable_list : public hittable {
             // Return whether or not we hit something
             return hit_anything;
         }
+
+        aabb bounding_box() const override { return bbox; }
+
+    private:
+        aabb bbox;
 };
 
 #endif

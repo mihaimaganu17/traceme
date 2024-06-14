@@ -15,6 +15,12 @@ class interval {
 
         interval(double min, double max) : min(min), max(max) {}
 
+        // Create an interval tightly enclosing the other 2 give intervals
+        interval(const interval& a, const interval& b) {
+            min = a.min <= b.min ? a.min : b.min;
+            max = a.max > b.max ? a.max : b.max;
+        }
+
         // Return size of the interval
         double size() {
             return max-min;
@@ -37,6 +43,13 @@ class interval {
             if (x < min) return min;
             if (x > max) return max;
             return x;
+        }
+
+        // Expand the current interval by adding padding to both ends of it
+        interval expand(double padding) {
+            // We want to add the same amount left and right
+            padding /= 2;
+            return interval(min - padding, max + padding);
         }
 
         // Predefined intervals
