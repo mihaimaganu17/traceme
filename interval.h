@@ -22,7 +22,7 @@ class interval {
         }
 
         // Return size of the interval
-        double size() {
+        double size() const {
             return max-min;
         }
 

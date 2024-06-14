@@ -23,8 +23,15 @@ class bvh_node: public hittable {
         // new `bvh_node` from a given list of object within the span given by `start` and `end`
         // offsets
         bvh_node(std::vector<shared_ptr<hittable>>& objects, size_t start, size_t end) {
-            // Randomly choose an axis between x, y, z
-            unsigned int axis = random_int(0, 2);
+            // Build the bounding box from the span of the source objects
+            bbox = aabb::empty;
+
+            for (size_t object_index=start; object_index < end; object_index++) {
+                bbox = aabb(bbox, objects[object_index]->bounding_box());
+            }
+
+            // And we split based on the longest axis, to give us a better split
+            unsigned int axis = bbox.longest_axis();
             // Comparator for the sorting function. Based on what axis we choose, we compare that
             // axis
             auto comparator  = (axis == 0) ? box_x_compare
@@ -51,9 +58,6 @@ class bvh_node: public hittable {
                 left = make_shared<bvh_node>(objects, start, mid);
                 right = make_shared<bvh_node>(objects, mid + 1, end);
             };
-
-            // Create a new bounding box from the bounding boxes of the left and the right tree
-            bbox = aabb(left->bounding_box(), right->bounding_box());
         }
 
         // Computes whether the ray hits this node, by recursively checking its left and right
