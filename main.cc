@@ -74,7 +74,10 @@ void defocus_my_cam(camera& cam) {
     cam.focus_dist = 3.4;
 }
 
-void random_sphere_cover(hittable_list& world, camera& cam) {
+void random_sphere_cover() {
+    // World / Scene configuration
+    hittable_list world;
+
     auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
     auto ground_sphere = make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material);
 
@@ -140,6 +143,9 @@ void random_sphere_cover(hittable_list& world, camera& cam) {
 
     world = hittable_list(make_shared<bvh_node>(world));
 
+    // SetV up the camera through which we view the world
+    camera cam;
+
     // Setup camera
     // Change the aspect ratio to something more popular
     cam.aspect_ratio = 16.0 / 9.0;
@@ -159,19 +165,6 @@ void random_sphere_cover(hittable_list& world, camera& cam) {
 
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
-}
-
-int main() {
-    // World / Scene configuration
-    hittable_list world;
-
-    world_with_spheres(world);
-
-    auto checker = make_shared<checker_texture>(0.32, color(.2, .3, .1), color(.9, .9, .9));
-    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
-
-    // Set up the camera through which we view the world
-    camera cam;
 
     // Change the aspect ratio to something more popular
     cam.aspect_ratio = 16.0 / 9.0;
@@ -184,9 +177,46 @@ int main() {
 
     cam.vfov = 90;
 
-    //twist_my_cam(cam);
-    //defocus_my_cam(cam);
-    random_sphere_cover(world, cam);
 
     cam.render(world);
+}
+
+void checkered_spheres() {
+    hittable_list world;
+
+    auto checker = make_shared<checker_texture>(0.32, color(.2, .3, .1), color(.9, .9, .9));
+
+    world.add(make_shared<sphere>(point3(0, -10, 0), 10, make_shared<lambertian>(checker)));
+    world.add(make_shared<sphere>(point3(0, 10, 0), 10, make_shared<lambertian>(checker)));
+
+    // SetV up the camera through which we view the world
+    camera cam;
+
+    // Setup camera
+    // Change the aspect ratio to something more popular
+    cam.aspect_ratio = 16.0 / 9.0;
+    // Change image's width. This will automatically also change the images height as well.
+    cam.image_width = 400;
+    // Set the number of ray samples we want to cast for each pixel to do anti-aliasing
+    cam.samples_per_pixel = 100;
+    // Set the number of times we want the casted rays to reflect on surfaces of the world
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+
+    // Move camera to the right, a bit upwards and a bit backwards
+    cam.lookfrom = point3(13, 2, 3);
+    cam.lookat = point3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+
+    cam.render(world);
+}
+
+int main() {
+    switch(2) {
+        case 1: random_sphere_cover(); break;
+        case 2: checkered_spheres(); break;
+    }
 }
