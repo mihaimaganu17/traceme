@@ -2,6 +2,7 @@
 #define MATERIAL_H
 
 #include "traceme.h"
+#include "texture.h"
 
 class hit_record;
 
@@ -31,7 +32,8 @@ class material {
 
 class lambertian: public material {
     public:
-        lambertian(const color& albedo): albedo(albedo) {}
+        lambertian(const color& albedo): tex(make_shared<solid_color>(albedo)) {}
+        lambertian(shared_ptr<texture> tex): tex(tex) {}
 
         bool scatter(
             const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
@@ -48,19 +50,17 @@ class lambertian: public material {
             }
             // Construct the ray that gets scattered (reflected)
             scattered = ray(rec.p, scatter_direction, r_in.time());
-            // Communicate our attenuation (albedo) or the fractional reflectance
+            // Communicate our attenuation (texture) or the fractional reflectance
             // Another option would be to scatter with a certain probability `p` and then we would
             // have the `attenuation = albedo / p`
-            attenuation = albedo;
+            attenuation = tex->value(rec.u, rec.v, rec.p);
             // Communicated that we did scatter / reflected the ray
             return true;
         }
 
     private:
-        // Albedo (Latin for whiteness) is used here to be the `fractional reflectance`, which
-        // in essence is the ray that is reflected off of the surface, given the ray incidence, the
-        // color and the material of the surface.
-        color albedo;
+        // Texture for the object
+        shared_ptr<texture> tex;
 };
 
 // Implements `material` class for a metal material

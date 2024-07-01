@@ -6,6 +6,7 @@
 #include "hittable_list.h"
 #include "material.h"
 #include "bvh.h"
+#include "texture.h"
 
 
 void world_with_spheres(hittable_list& world) {
@@ -165,6 +166,9 @@ int main() {
     hittable_list world;
 
     world_with_spheres(world);
+
+    auto checker = make_shared<checker_texture>(0.32, color(.2, .3, .1), color(.9, .9, .9));
+    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
 
     // Set up the camera through which we view the world
     camera cam;
