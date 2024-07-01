@@ -21,6 +21,11 @@ class hit_record {
         shared_ptr<material> mat;
         // Gives the length of the ray that hit
         double t;
+
+        // Coordinates for the texture mapping pixel color, which yield a constant color
+        double u;
+        double v;
+
         // Records whether or not the ray hit the surface from the outside (true) or the inside
         // (false)
         bool front_face;

@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-// Node representing a tree of bouning volume hierarchies
+// Node representing a tree of bounding volume hierarchies
 class bvh_node: public hittable {
     public:
         // Create a new node with a hittable list
