@@ -80,6 +80,8 @@ class sphere: public hittable {
             vec3 outward_normal = (rec.p - center) / radius;
             // Add surface determination for the object
             rec.set_face_normal(r, outward_normal);
+            // Compute the texture mapping coordinates u and v
+            get_sphere_uv(outward_normal, rec.u, rec.v);
             // Give the hit record information about the material of the surface that was just hit
             rec.mat = mat;
 
@@ -105,6 +107,18 @@ class sphere: public hittable {
             // Linearly interpolate from center1 to center2 according to time, where t=0 yields
             // center1, and t=1 yield center2.
             return center1 + time * center_vec;
+        }
+
+        // Get the (u,v) coordinates within the 2D texture mapping for a point `p` located on the
+        // unit sphere (radius 1), centered at the origin.
+        // u: returned value [0, 1] of angle around the Y axis from X = -1;
+        // v: returned value [0, 1] of angle from Y = -1 to Y = +1;
+        static void get_sphere_uv(const point3& p, double& u, double& v) {
+            auto theta = acos(-p.y());
+            auto phi = atan2(-p.z(), p.x()) + pi;
+
+            u = phi / (2*pi);
+            v = theta / pi;
         }
 };
 #endif
