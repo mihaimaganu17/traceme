@@ -215,9 +215,14 @@ void checkered_spheres() {
 }
 
 void earth() {
+    hittable_list world;
     auto earth_texture = make_shared<image_texture>("earthmap.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
-    auto globe = make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
+    auto globe = make_shared<sphere>(point3(0, 0, 4), 1, earth_surface);
+    world.add(globe);
+
+    auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared<sphere>(point3(2, 0, 3), 1.0, material3));
 
     camera cam;
 
@@ -233,7 +238,7 @@ void earth() {
 
     cam.defocus_angle = 0;
 
-    cam.render(hittable_list(globe));
+    cam.render(world);
 }
 
 int main() {
