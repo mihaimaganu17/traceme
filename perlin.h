@@ -63,6 +63,24 @@ class perlin {
             return perlin_interp(c, u, v, w);
         }
 
+        // Returns a sum of multiple noise frequencies, known as turbulence. Noise is applied
+        // `depth` times, each time with a lesser weight than the previous
+        double turb(const point3& p, int depth) const {
+            auto accum = 0.0;
+            auto temp_p = p;
+            auto weight = 1.0;
+
+            for (int i = 0; i < depth; i++) {
+                accum += weight * noise(temp_p);
+                // Bring down the weight
+                weight *= 0.5;
+                // Go to another point
+                temp_p *= 2;
+            }
+
+            return fabs(accum);
+        }
+
     private:
         // Perlin noise is repeatable
         static const int point_count = 256;
