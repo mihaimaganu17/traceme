@@ -214,6 +214,42 @@ void checkered_spheres() {
     cam.render(world);
 }
 
+void perlin_spheres() {
+    hittable_list world;
+
+    auto perlin_texture = make_shared<noise_texture>();
+    auto perlin_material = make_shared<lambertian>(perlin_texture);
+    auto giant_floor = make_shared<sphere>(point3(0, -1000, 0), 1000, perlin_material);
+    auto big_sphere = make_shared<sphere>(point3(0, 2, 0), 2, perlin_material);
+
+    world.add(giant_floor);
+    world.add(big_sphere);
+
+    // SetV up the camera through which we view the world
+    camera cam;
+
+    // Setup camera
+    // Change the aspect ratio to something more popular
+    cam.aspect_ratio = 16.0 / 9.0;
+    // Change image's width. This will automatically also change the images height as well.
+    cam.image_width = 400;
+    // Set the number of ray samples we want to cast for each pixel to do anti-aliasing
+    cam.samples_per_pixel = 100;
+    // Set the number of times we want the casted rays to reflect on surfaces of the world
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+    // Move camera to the right, a bit upwards and a bit backwards
+    cam.lookfrom = point3(13, 2, 3);
+    cam.lookat = point3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+
+    cam.render(world);
+
+}
+
 void earth() {
     hittable_list world;
     auto earth_texture = make_shared<image_texture>("earthmap.jpg");
@@ -242,9 +278,10 @@ void earth() {
 }
 
 int main() {
-    switch(3) {
+    switch(4) {
         case 1: random_sphere_cover(); break;
         case 2: checkered_spheres(); break;
         case 3: earth(); break;
+        case 4: perlin_spheres(); break;
     }
 }
