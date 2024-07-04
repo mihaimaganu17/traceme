@@ -217,7 +217,7 @@ void checkered_spheres() {
 void perlin_spheres() {
     hittable_list world;
 
-    auto perlin_texture = make_shared<noise_texture>();
+    auto perlin_texture = make_shared<noise_texture>(4);
     auto perlin_material = make_shared<lambertian>(perlin_texture);
     auto giant_floor = make_shared<sphere>(point3(0, -1000, 0), 1000, perlin_material);
     auto big_sphere = make_shared<sphere>(point3(0, 2, 0), 2, perlin_material);
