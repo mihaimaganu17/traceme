@@ -19,6 +19,7 @@ class quad: public hittable {
             normal = unit_vector(n);
             // Compute D
             D = dot(normal, Q);
+            w = n / dot(n, n);
             set_bounding_box();
         }
 
@@ -30,9 +31,9 @@ class quad: public hittable {
             bbox = aabb(bbox_diagonal1, bbox_diagonal2);
         }
 
-        aabb bounding_box() const override { reuturn bbox; }
+        aabb bounding_box() const override { return bbox; }
 
-        bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+        bool hit(const ray& r, const interval& ray_t_interval, hit_record& rec) const override {
             // Compute denominator
             auto denom = dot(normal, r.direction());
 
@@ -43,14 +44,37 @@ class quad: public hittable {
 
             // Return false if the hit point parameter t is outside the ray interval.
             auto t = (D - dot(normal, r.origin())) / denom;
-            if (!ray_t.contains(t)) return false;
+            if (!ray_t_interval.contains(t)) return false;
 
+            // Determine if the hit point lies withing the planar shape using its plane coordinates.
             auto intersection = r.at(t);
 
+            vec3 planar_hitpt_vector = intersection - Q;
+            auto alpha = dot(w, cross(planar_hitpt_vector, v));
+            auto beta = dot(w, cross(u, planar_hitpt_vector));
+
+            if (!is_interior(alpha, beta, rec))
+                return false;
+
+            // Ray hits the 2D shape; set the rest of the hit record and return true.
             rec.t = t;
             rec.p = intersection;
             rec.mat = mat;
             rec.set_face_normal(r, normal);
+
+            return true;
+        }
+
+        // Computes whether or not the point defined by `a` and `b` on the plane is contained
+        // inside the unit interval
+        virtual bool is_interior(double a, double b, hit_record& rec) const {
+            interval unit_interval = interval(0, 1);
+
+            if (!unit_interval.contains(a) || !unit_interval.contains(b))
+                return false;
+
+            rec.u = a;
+            rec.v = b;
 
             return true;
         }
@@ -68,6 +92,7 @@ class quad: public hittable {
         double D;
         // Normal on the surface
         vec3 normal;
-}
+        vec3 w;
+};
 
 #endif

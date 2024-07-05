@@ -7,6 +7,7 @@
 #include "material.h"
 #include "bvh.h"
 #include "texture.h"
+#include "quad.h"
 
 
 void world_with_spheres(hittable_list& world) {
