@@ -12,7 +12,10 @@ class aabb {
         aabb() {}
 
         // Initializer with user supplied parameters
-        aabb(const interval& x, const interval& y, const interval& z): x(x), y(y), z(z) {}
+        aabb(const interval& x, const interval& y, const interval& z): x(x), y(y), z(z) {
+            double padding_delta = 0.0001;
+            pad_to_delta(padding_delta);
+        }
 
         // Construct a bounding box by treating points `a` and `b` as extremes
         aabb(const point3& a, const point3& b) {
@@ -101,6 +104,17 @@ class aabb {
 
         // Standard value across the entire codebase
         static const aabb empty, universe;
+
+    private:
+        // Sometimes you need a surface that is 2 dimensional. In those cases one of the coordinates
+        // will be zero and that can run into errors with ray-tracing because of volume computation.
+        // As such, we pad the bouding box with a minimum amount to make sure we do not get 0
+        // volumes.
+        void pad_to_delta(double delta) {
+            if (x.size() < delta) x = x.expand(delta);
+            if (y.size() < delta) y = y.expand(delta);
+            if (z.size() < delta) z = z.expand(delta);
+        }
 };
 
 const aabb aabb::empty = aabb(interval::empty, interval::empty, interval::empty);
